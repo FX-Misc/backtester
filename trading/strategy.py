@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from data.trading.events import OrderEvent
+from trading import OrderEvent
 
 
 class Strategy(object):
