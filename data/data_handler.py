@@ -25,7 +25,7 @@ class DataHandler(object):
         :param n:
         :return:
         """
-        raise NotImplementedError("get_latest_bars()")
+        raise NotImplementedError("DataHandler.get_latest_bars()")
 
     @abstractmethod
     def update_bars(self):
@@ -33,4 +33,4 @@ class DataHandler(object):
         Pushes the latest bar to the latest symbol structure for all symbols in the symbol list.
         Also should send a MarketEvent to the queue.
         """
-        raise NotImplementedError("update_bars()")
+        raise NotImplementedError("DataHandler.update_bars()")
