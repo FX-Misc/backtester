@@ -1,7 +1,5 @@
 from abc import ABCMeta, abstractmethod
-
-from trading import OrderEvent
-
+from trading.events import OrderEvent
 
 class Strategy(object):
     """
