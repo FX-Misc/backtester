@@ -2,6 +2,7 @@ import pandas as pd
 import datetime as dt
 from data_handler import DataHandler
 
+
 class EquitiesDataHandler(DataHandler):
     # TODO: multiple symbol support
     def __init__(self, events, start_date, end_date):

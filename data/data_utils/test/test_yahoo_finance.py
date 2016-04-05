@@ -2,6 +2,7 @@ import unittest
 import datetime as dt
 import data.data_utils.yahoo_finance as yf
 
+
 class TestYahooFinance(unittest.TestCase):
 
     @classmethod
@@ -26,4 +27,4 @@ class TestYahooFinance(unittest.TestCase):
 
     def test_get_returns(self):
         returns = yf.get_returns(self.symbol, self.start_date, self.end_date)
-        self.assertAlmostEqual(returns[self.test_date], 9.049988)
+        self.assertAlmostEqual(returns[self.test_date], 9.049988)        
