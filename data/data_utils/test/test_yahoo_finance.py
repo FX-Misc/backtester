@@ -27,4 +27,12 @@ class TestYahooFinance(unittest.TestCase):
 
     def test_get_returns(self):
         returns = yf.get_returns(self.symbol, self.start_date, self.end_date)
-        self.assertAlmostEqual(returns[self.test_date], 9.049988)        
+        self.assertAlmostEqual(returns[self.test_date], 9.049988)
+
+    def test_get_company_name(self):
+        company_name = yf.get_company_name(self.symbol)
+        self.assertEqual(company_name, 'Google Inc.')
+
+    def test_get_company_sector(self):
+        company_sector = yf.get_company_sector(self.symbol)
+        self.assertEqual(company_sector, 'Technology')
