@@ -3,6 +3,7 @@ import pandas as pd
 import pandas_datareader.data as web
 from collections import OrderedDict
 
+
 def get_stock_data(symbol, start_date, end_date):
     """
     Get daily resolution O/H/L/C stock data from Yahoo Finance for a single symbol.
@@ -31,7 +32,7 @@ def get_stock_data(symbol, start_date, end_date):
 
 def get_stock_data_multiple(symbols, start_date=None, end_date=None):
     """
-    Get daily reoslution O/H/L/C stock data from Yahoo Finance for multiple symbols.
+    Get daily resolution O/H/L/C stock data from Yahoo Finance for multiple symbols.
     :param symbols: (list) of symbols (str)
     :param start_date: (DateTime)
     :param end_date: (DateTime)
@@ -71,6 +72,7 @@ def get_returns(symbol, start_date=None, end_date=None, col='Adj Close'):
     data = get_stock_data(symbol, start_date, end_date)[col]
     return data.diff().fillna(0)
 
+
 def get_company_name(symbol):
     """
     Get the full name of the company by the symbol.
@@ -83,6 +85,7 @@ def get_company_name(symbol):
     code = company_info['Name'].keys()[0]
     company_name = company_info.to_dict()['Name'][code]
     return company_name
+
 
 def get_company_sector(symbol):
     """

@@ -1,2 +1,4 @@
 pandas==0.18.0
 pandas-datareader==0.2.0
+pytz==2016.3
+numpy==1.11.0
