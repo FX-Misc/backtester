@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from trading.events import OrderEvent
+from backtester.events import OrderEvent
 
 class Strategy(object):
     """
@@ -46,14 +46,14 @@ class Strategy(object):
         """
         self.cur_time = event.datetime
 
-    @abstractmethod
-    def new_day(self, event):
-        """
-        Call back for when the strategy receives a tick that is a new day.
-        :param event:
-        :return:
-        """
-        raise NotImplementedError("new_day()")
+    # @abstractmethod
+    # def new_day(self, event):
+    #     """
+    #     Call back for when the strategy receives a tick that is a new day.
+    #     :param event:
+    #     :return:
+    #     """
+    #     raise NotImplementedError("new_day()")
 
     @abstractmethod
     def new_fill(self, event):

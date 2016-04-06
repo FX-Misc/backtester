@@ -86,7 +86,7 @@ class CMEDataHandlerHistorical(DataHandler):
             self.current_day = self.current_day + dt.timedelta(days=1)
             self._load_day_data()
 
-    def get_latest_bars(self, n=1):
+    def get_latest(self, n=1):
         """
         Returns the last N bars from the lastest_data list,
         or fewer if less bars are available.
@@ -98,7 +98,7 @@ class CMEDataHandlerHistorical(DataHandler):
         else:
             return self.current_day_data.ix[(i-n):(i+1)]
 
-    def update_bars(self):
+    def update(self):
         try:
             self.current_day_index += self.bar_length
             i = self.current_day_index

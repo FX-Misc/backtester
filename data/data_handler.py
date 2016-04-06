@@ -19,7 +19,7 @@ class DataHandler(object):
         self.events = events
 
     @abstractmethod
-    def get_latest_bars(self, n=1):
+    def get_latest(self, n=1):
         """
         Returns the last N bars from the latest_data list, or fewer if less bars are available.
         :param n:
@@ -28,7 +28,7 @@ class DataHandler(object):
         raise NotImplementedError("DataHandler.get_latest_bars()")
 
     @abstractmethod
-    def update_bars(self):
+    def update(self):
         """
         Pushes the latest bar to the latest symbol structure for all symbols in the symbol list.
         Also should send a MarketEvent to the queue.
