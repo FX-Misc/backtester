@@ -1,3 +1,5 @@
+import os
+import pandas as pd
 import pandas_datareader.data as web
 from collections import OrderedDict
 
@@ -68,3 +70,29 @@ def get_returns(symbol, start_date=None, end_date=None, col='Adj Close'):
     """
     data = get_stock_data(symbol, start_date, end_date)[col]
     return data.diff().fillna(0)
+
+def get_company_name(symbol):
+    """
+    Get the full name of the company by the symbol.
+    :param symbol:
+    :return:
+    """
+    f_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'secwiki_tickers.csv')
+    df = pd.read_csv(f_path)
+    company_info = df[df.Ticker == symbol]
+    code = company_info['Name'].keys()[0]
+    company_name = company_info.to_dict()['Name'][code]
+    return company_name
+
+def get_company_sector(symbol):
+    """
+    Get the sector of the company by the symbol.
+    :param symbol: (str)
+    :return: (str)
+    """
+    f_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'secwiki_tickers.csv')
+    df = pd.read_csv(f_path)
+    company_info = df[df.Ticker == symbol]
+    code = company_info['Name'].keys()[0]
+    company_sector = company_info.to_dict()['Sector'][code]
+    return company_sector
