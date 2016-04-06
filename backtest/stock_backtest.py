@@ -1,8 +1,10 @@
 from backtest import Backtest
 from data.stock_data_handler import StockDatahandler
+from execution.stock_execution_handler import StockExecutionHandler
+from Queue import Empty
 
 class StockBacktest(Backtest):
-    def __init__(self, events, strategy, data, execution, start_date, end_date):
+    def __init__(self, events, strategy, data, execution, start_date, end_date, initial_capital=1000000):
         """
         :param events: (Queue)
         :param strategy: (Strategy)
@@ -13,23 +15,38 @@ class StockBacktest(Backtest):
         """
 
         assert isinstance(data, StockDatahandler)
+        assert isinstance(execution, StockExecutionHandler)
+        # TODO: datetime assertion?
         super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
 
+
     def run(self):
+
         while True:
             if self.continue_backtest:
                 self.data.update()
+            else:
+                break
+            # Handle events
+            while True:
+                try:
+                    event = self.events.get(False)
+                except Empty:
+                    break
+                else:
+                    if event is not None:
+                        self._event_handler(event)
 
-        def _event_handler(self, event):
-            if event.type == 'MARKET':
-                self.strategy.new_tick(event)
-                self.execution.process_resting_orders(event)
+    def _event_handler(self, event):
+        if event.type == 'MARKET':
+            self.strategy.new_tick(event)
+            self.execution.process_resting_orders(event)
 
-            elif event.type == 'ORDER':
-                self.execution.process_order(event)
+        elif event.type == 'ORDER':
+            self.execution.process_order(event)
 
-            elif event.type == 'FILL':
-                self.strategy.new_fill(event)
+        elif event.type == 'FILL':
+            self.strategy.new_fill(event)
 
 
 
@@ -52,27 +69,6 @@ class StockBacktest(Backtest):
 #
 #         self.bars._load_day_data()
 #
-#     def run(self):
-#         """
-#         Run the backtest
-#         """
-#         self.log_backtest_info()
-#         while True:
-#             # Update the bars
-#             if self.bars.continue_backtest:
-#                 self.bars.update()
-#             else:
-#                 break
-#
-#             # Handle the events
-#             while True:
-#                 try:
-#                     event = self.events.get(False)
-#                 except Empty:
-#                     break
-#                 else:
-#                     if event is not None:
-#                         self._event_handler(event)
 #
 #         # print self.portfolio.positions
 #         log.info("Backtest completed")
@@ -89,12 +85,3 @@ class StockBacktest(Backtest):
 #         """
 #
 #
-#     def log_backtest_info(self):
-#         info = 'Running backtest with parameters: \n ' \
-#                'Strategy: {} \n ' \
-#                'Execution: {} \n ' \
-#                'Start date: {}, End date: {}' \
-#             .format(self.strategy.__class__.__name__,
-#                     self.execution.__class__.__name__,
-#                     self.start_date, self.end_date)
-#         log.info(info)

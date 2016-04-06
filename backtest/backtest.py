@@ -1,4 +1,6 @@
+import logging
 from abc import ABCMeta, abstractmethod
+log = logging.getLogger('Backtest')
 
 class Backtest(object):
 
@@ -24,3 +26,13 @@ class Backtest(object):
         :return:
         """
         raise NotImplementedError("Backtest.run()")
+
+    def log_backtest_info(self):
+        info = 'Running backtest with parameters: \n ' \
+               'Strategy: {} \n ' \
+               'Execution: {} \n ' \
+               'Start date: {}, End date: {}' \
+            .format(self.strategy.__class__.__name__,
+                    self.execution.__class__.__name__,
+                    self.start_date, self.end_date)
+        log.info(info)
