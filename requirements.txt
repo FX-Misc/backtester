@@ -2,3 +2,6 @@ pandas==0.18.0
 pandas-datareader==0.2.0
 pytz==2016.3
 numpy==1.11.0
+Quandl==2.8.9
+tabulate==0.7.5
+python-dateutil==2.5.2

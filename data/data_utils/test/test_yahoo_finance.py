@@ -31,8 +31,8 @@ class TestYahooFinance(unittest.TestCase):
 
     def test_get_company_name(self):
         company_name = yf.get_company_name(self.symbol)
-        self.assertEqual(company_name, 'Google Inc.')
+        self.assertEqual('Google Inc.', company_name)
 
     def test_get_company_sector(self):
         company_sector = yf.get_company_sector(self.symbol)
-        self.assertEqual(company_sector, 'Technology')
+        self.assertEqual('Technology', company_sector)
