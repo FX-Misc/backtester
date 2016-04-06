@@ -1,6 +1,4 @@
 import unittest
-import tabulate
-import pandas as pd
 import datetime as dt
 from data.data_utils import future_utils as fut
 
