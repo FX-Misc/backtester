@@ -1,7 +1,7 @@
 from Queue import Empty
 
-from stock_backtest.stock_data_handler import StockDatahandler
-from stock_backtest.stock_execution_handler import StockExecutionHandler
+from backtest.stock_data_handler import StockDatahandler
+from backtest.stock_execution_handler import StockExecutionHandler
 from trading.backtest import Backtest
 
 
