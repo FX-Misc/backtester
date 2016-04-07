@@ -1,6 +1,6 @@
 import unittest
 import datetime as dt
-import data.data_utils.yahoo_finance as yf
+import utils.data_utils.yahoo_finance as yf
 
 
 class TestYahooFinance(unittest.TestCase):

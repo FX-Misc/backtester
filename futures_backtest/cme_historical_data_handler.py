@@ -1,6 +1,8 @@
-import logging
 import datetime as dt
-from data_handler import DataHandler
+import logging
+
+from trading.data_handler import DataHandler
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 

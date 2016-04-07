@@ -17,28 +17,30 @@ class MarketEvent(Event):
         self.dt = dt
 
 
-class NewDayEvent(Event):
-    def __init__(self, prev_data, next_date):
-        """
-        New day, gives previous day's data, called only when there is a previous day existing
-        :param prev_data: (datetime)
-        :param next_date: (datetime)
-        """
-        self.type = 'NEW_DAY'
-        self.prev_data = prev_data
-        self.prev_date = prev_data.reset_index()['time'].values[0]
-        self.next_date = next_date
+# class NewDayEvent(Event):
+#     def __init__(self, prev_data, next_date):
+#         """
+#         New day, gives previous day's data, called only when there is a previous day existing
+#         :param prev_data: (datetime)
+#         :param next_date: (datetime)
+#         """
+#         self.type = 'NEW_DAY'
+#         self.prev_data = prev_data
+#         self.prev_date = prev_data.reset_index()['time'].values[0]
+#         self.next_date = next_date
 
 
 class OrderEvent(Event):
     """
     Handles the event of sending an Order to an execution system.
+    :param datetime: (DateTime)
     :param symbol: (str)
     :param order_type: (str) 'MARKET', 'LIMIT'
     :param quantity: (int)
     :param price: (float)
     """
-    def __init__(self, symbol, order_type, quantity, price=None):
+    def __init__(self, order_time, symbol, order_type, quantity, price=None):
+        self.order_time = order_time
         self.type = 'ORDER'
         self.symbol = symbol
         assert order_type is 'MARKET' or order_type is 'LIMIT'
@@ -60,7 +62,7 @@ class FillEvent(Event):
         Stores the quantity of an instrument actually filled and at what price.
         In addition, stores the commission of the trade from the brokerage.
 
-        :param fill_time: (datetime)
+        :param fill_time: (DateTime)
         :param symbol: (str)
         :param exchange: (str)
         :param quantity: (int)

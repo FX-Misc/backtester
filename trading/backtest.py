@@ -6,8 +6,7 @@ class Backtest(object):
 
     def __init__(self, events, strategy, data, execution, start_date, end_date):
         """
-
-
+        Backtest base.
         """
         self.events = events
         self.strategy = strategy

@@ -1,7 +1,9 @@
-from backtest import Backtest
-from data.stock_data_handler import StockDatahandler
-from execution.stock_execution_handler import StockExecutionHandler
 from Queue import Empty
+
+from stock_backtest.stock_data_handler import StockDatahandler
+from stock_backtest.stock_execution_handler import StockExecutionHandler
+from trading.backtest import Backtest
+
 
 class StockBacktest(Backtest):
     def __init__(self, events, strategy, data, execution, start_date, end_date, initial_capital=1000000):

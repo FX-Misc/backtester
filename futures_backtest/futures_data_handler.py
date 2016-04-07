@@ -1,4 +1,4 @@
-from data_handler import DataHandler
+from trading.data_handler import DataHandler
 
 class FuturesDataHandler(DataHandler):
     pass

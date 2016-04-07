@@ -1,6 +1,6 @@
 import unittest
 import datetime as dt
-from data.data_utils import future_utils as fut
+from utils.data_utils import futures_utils as fut
 
 
 class TestFutureUtils(unittest.TestCase):

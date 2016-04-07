@@ -1,5 +1,6 @@
-from backtest import Backtest
-from data.futures_data_handler import FuturesDataHandler
+from futures_backtest.futures_data_handler import FuturesDataHandler
+from trading.backtest import Backtest
+
 
 class FuturesBacktest(Backtest):
     def __init__(self, events, strategy, data, execution, start_date, end_date,

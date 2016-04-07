@@ -1,5 +1,5 @@
 import unittest
-from data.stock import Stock
+from utils.stock import Stock
 
 
 class TestStock(unittest.TestCase):
