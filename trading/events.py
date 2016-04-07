@@ -33,14 +33,14 @@ class MarketEvent(Event):
 class OrderEvent(Event):
     """
     Handles the event of sending an Order to an execution system.
-    :param datetime: (DateTime)
+    :param datetime: (DateTime) order time
     :param symbol: (str)
     :param order_type: (str) 'MARKET', 'LIMIT'
     :param quantity: (int)
     :param price: (float)
     """
-    def __init__(self, order_time, symbol, order_type, quantity, price=None):
-        self.order_time = order_time
+    def __init__(self, dt, symbol, order_type, quantity, price=None):
+        self.dt = dt
         self.type = 'ORDER'
         self.symbol = symbol
         assert order_type is 'MARKET' or order_type is 'LIMIT'
@@ -56,13 +56,13 @@ class OrderEvent(Event):
 
 
 class FillEvent(Event):
-    def __init__(self, fill_time, symbol, exchange, quantity, fill_cost, commission=0):
+    def __init__(self, dt, symbol, quantity, fill_cost, commission=0):
         """
         Encapsulates the notion of a Filled Order, as returned from a brokerage.
         Stores the quantity of an instrument actually filled and at what price.
         In addition, stores the commission of the trade from the brokerage.
 
-        :param fill_time: (DateTime)
+        :param dt: (DateTime) fill time
         :param symbol: (str)
         :param exchange: (str)
         :param quantity: (int)
@@ -71,9 +71,8 @@ class FillEvent(Event):
         :return:
         """
         self.type = 'FILL'
-        self.fill_time = fill_time
+        self.dt = dt
         self.symbol = symbol
-        self.exchange = exchange
         self.quantity = quantity
         self.fill_cost = fill_cost
         self.commission = commission

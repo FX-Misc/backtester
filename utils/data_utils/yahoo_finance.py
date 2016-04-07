@@ -1,12 +1,14 @@
 import os
+import datetime as dt
 import pandas as pd
 import pandas_datareader.data as web
 from collections import OrderedDict
 
 
-def get_stock_data(symbol, start_date, end_date):
+def get_stock_data(symbol, start_date=None, end_date=None):
     """
     Get daily resolution O/H/L/C stock data from Yahoo Finance for a single symbol.
+    If start_date and end_date are None, get's all possible data.
     :param symbol: (string)
     :param start_date: (DateTime)
     :param end_date: (DateTime)

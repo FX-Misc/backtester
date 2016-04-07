@@ -20,6 +20,7 @@ class TestYahooFinance(unittest.TestCase):
         self.assertTrue(data.keys().__contains__('Low'))
         self.assertTrue(data.keys().__contains__('Close'))
         self.assertTrue(data.keys().__contains__('Volume'))
+        print data
 
     def test_get_pct_returns(self):
         pct_returns = yf.get_pct_returns(self.symbol, self.start_date, self.end_date)

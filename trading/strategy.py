@@ -1,34 +1,40 @@
 from abc import ABCMeta, abstractmethod
-from backtester.events import OrderEvent
+from events import OrderEvent
 
 class Strategy(object):
     """
-    The Strategy is also an ABC that presents an interface for taking market data and
-    generating corresponding SignalEvents, which are ultimately utilised by the
-    Portfolio object.
-    A SignalEvent contains a ticker symbol, a direction (LONG or SHORT)
-    and a timestamp.
+    The Strategy is an ABC that presents an interface for taking market data and
+    generating corresponding OrderEvents which are sent to the ExecutionHandler.
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, bars, events, *args, **kwargs):
-        self.bars = bars
+    def __init__(self, data, events, *args, **kwargs):
+        self.data = data
         self.events = events
-        self.cur_time = None
+        self.curr_time = None
         self.initialize(*args, **kwargs)
 
     def order(self, symbol, quantity, price=None, type='market'):
-        if self.cur_time is None:
-            raise Exception("Must update self.cur_time")
-        if quantity == 0:
-            return
-
-        if type == "market":
-            order_event = OrderEvent(symbol, self.cur_time, 'MARKET', quantity, price)
-        else:
-            raise NotImplementedError("Order type {} not implemented".format(type))
-
-        self.events.put(order_event)
+        """
+        Generate an order and place it into events.
+        :param symbol:
+        :param quantity:
+        :param price:
+        :param type:
+        :return:
+        """
+        raise NotImplementedError("Strategy.order")
+        # if self.curr_time is None:
+        #     raise Exception("Must update self.curr_time")
+        # if quantity == 0:
+        #     return
+        #
+        # if type == "market":
+        #     order_event = OrderEvent(symbol, self.curr_time, 'MARKET', quantity, price)
+        # else:
+        #     raise NotImplementedError("Order type {} not implemented".format(type))
+        #
+        # self.events.put(order_event)
 
     @abstractmethod
     def initialize(self, *args, **kwargs):
@@ -44,7 +50,7 @@ class Strategy(object):
         :param event:
         :return:
         """
-        self.cur_time = event.datetime
+        self.curr_time = event.datetime
 
     # @abstractmethod
     # def new_day(self, event):
@@ -62,11 +68,11 @@ class Strategy(object):
         :param event: (FillEvent)
         :return:
         """
-        raise NotImplementedError("new_fill()")
+        raise NotImplementedError("Strategy.new_fill()")
 
     @abstractmethod
     def finished(self):
         """
         Call back for when a backtest (or live-trading) is finished.
         """
-        raise NotImplementedError("finished()")
+        raise NotImplementedError("Strategy.finished()")
