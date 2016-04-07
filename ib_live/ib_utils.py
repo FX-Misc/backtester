@@ -29,8 +29,6 @@ def create_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX'
 
     return contract
 
-# def create_stock_contract(symbol):
-
 def get_contract_details(contract):
     """
     Converts Contract into a dict
