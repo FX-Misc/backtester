@@ -18,6 +18,8 @@ class StockBacktest(Backtest):
         assert isinstance(execution, StockBacktestExecutionHandler)
         super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
 
+        self.events_log = []
+
     def run(self):
         while True:
             if self.continue_backtest:
@@ -42,7 +44,6 @@ class StockBacktest(Backtest):
         }
 
         event_handlers[event.type](event)
-    #     TODO: log info
 
     def _handle_market_event(self, market_event):
         self.strategy.new_tick(market_event)
@@ -50,7 +51,8 @@ class StockBacktest(Backtest):
 
     def _handle_order_event(self, order_event):
         self.execution.process_order(order_event)
+        self.events_log.append(order_event)
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill(fill_event)
-
+        self.events_log.append(fill_event)
