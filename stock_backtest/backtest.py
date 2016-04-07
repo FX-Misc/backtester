@@ -1,7 +1,6 @@
 from Queue import Empty
-
-from backtest.stock_data_handler import StockDatahandler
-from backtest.stock_execution_handler import StockExecutionHandler
+from data_handler import StockBacktestDataHandler
+from execution_handler import StockBacktestExecutionHandler
 from trading.backtest import Backtest
 
 
@@ -15,15 +14,11 @@ class StockBacktest(Backtest):
         :param start_date: (DateTime)
         :param end_date: (DateTime)
         """
-
-        assert isinstance(data, StockDatahandler)
-        assert isinstance(execution, StockExecutionHandler)
-        # TODO: datetime assertion?
+        assert isinstance(data, StockBacktestDataHandler)
+        assert isinstance(execution, StockBacktestExecutionHandler)
         super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
 
-
     def run(self):
-
         while True:
             if self.continue_backtest:
                 self.data.update()
@@ -41,25 +36,21 @@ class StockBacktest(Backtest):
 
     def _event_handler(self, event):
         event_handlers = {
-            'MARKET': self._handle_market_event(event),
-            'ORDER': self._handle_order_event(event),
-            'FILL': self._handle_fill_event(event)
+            'MARKET': self._handle_market_event,
+            'ORDER': self._handle_order_event,
+            'FILL': self._handle_fill_event
         }
-        if event.type == 'MARKET':
-            self.strategy.new_tick(event)
-            self.execution.process_resting_orders(event)
 
-        elif event.type == 'ORDER':
-            self.execution.process_order(event)
-
-        elif event.type == 'FILL':
-            self.strategy.new_fill(event)
+        event_handlers[event.type](event)
+    #     TODO: log info
 
     def _handle_market_event(self, market_event):
-        pass
+        self.strategy.new_tick(market_event)
+        self.execution.process_resting_orders(market_event)
 
     def _handle_order_event(self, order_event):
-        pass
+        self.execution.process_order(order_event)
 
     def _handle_fill_event(self, fill_event):
-        pass
+        self.strategy.new_fill(fill_event)
+
