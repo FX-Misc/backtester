@@ -7,6 +7,7 @@ class StockBacktestOrderEvent(events.OrderEvent):
 
 
 class StockBacktestFillEvent(events.FillEvent):
-    def __init__(self, dt, symbol, quantity, fill_cost, commission):
-        super(StockBacktestFillEvent, self).__init__(dt, symbol, quantity, fill_cost, commission)
-        self.exchange = 'StockBacktestExecution'
+    def __init__(self, dt, symbol, quantity, fill_cost, commission=0):
+        super(StockBacktestFillEvent, self).__init__(dt, symbol, quantity, fill_cost,
+                                                     exchange='StockBacktestExecution',
+                                                     commission=commission)

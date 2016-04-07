@@ -56,7 +56,7 @@ class OrderEvent(Event):
 
 
 class FillEvent(Event):
-    def __init__(self, dt, symbol, quantity, fill_cost, commission=0):
+    def __init__(self, dt, symbol, quantity, fill_cost, exchange, commission=0):
         """
         Encapsulates the notion of a Filled Order, as returned from a brokerage.
         Stores the quantity of an instrument actually filled and at what price.
