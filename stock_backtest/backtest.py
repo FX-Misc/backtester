@@ -36,6 +36,8 @@ class StockBacktest(Backtest):
                     if event is not None:
                         self._event_handler(event)
 
+        print "Finished backtest"
+
     def _event_handler(self, event):
         event_handlers = {
             'MARKET': self._handle_market_event,

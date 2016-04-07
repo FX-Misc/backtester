@@ -17,3 +17,7 @@ data = StockBacktestDataHandler(events, symbols, start_date, end_date)
 execution = StockBacktestExecutionHandler(events)
 strategy = BuyStrategy(events)
 backtest = StockBacktest(events, strategy, data, execution, start_date, end_date, initial_capital=1000000)
+
+results = backtest.run()
+
+print results  # graph this
