@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class DataHandler(object):
     """
     DataHandler is an abstract base class providing an interface for
@@ -22,8 +23,8 @@ class DataHandler(object):
     def get_latest(self, n=1):
         """
         Returns the last N bars from the latest_data list, or fewer if less bars are available.
-        :param n:
-        :return:
+        :param n: (int)
+        :return: (DataFrame)
         """
         raise NotImplementedError("DataHandler.get_latest_bars()")
 

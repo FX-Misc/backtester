@@ -1,13 +1,12 @@
-import datetime as dt
 import logging
-
+import datetime as dt
 from trading.data_handler import DataHandler
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 
 
-class CMEDataHandlerHistorical(DataHandler):
+class FuturesDataHandler(DataHandler):
     def __init__(self, events, symbols, start_date, end_date, start_time=dt.timedelta(hours=3),
                  end_time=dt.timedelta(hours=20, minutes=59), second_bars=True,
                  add_features=True, standardize=False, bar_length=1, preprocess_function=None, x_feats=[], y_feats=[]):

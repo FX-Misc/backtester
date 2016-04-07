@@ -40,6 +40,11 @@ class StockBacktest(Backtest):
                         self._event_handler(event)
 
     def _event_handler(self, event):
+        event_handlers = {
+            'MARKET': self._handle_market_event(event),
+            'ORDER': self._handle_order_event(event),
+            'FILL': self._handle_fill_event(event)
+        }
         if event.type == 'MARKET':
             self.strategy.new_tick(event)
             self.execution.process_resting_orders(event)
@@ -50,40 +55,11 @@ class StockBacktest(Backtest):
         elif event.type == 'FILL':
             self.strategy.new_fill(event)
 
+    def _handle_market_event(self, market_event):
+        pass
 
+    def _handle_order_event(self, order_event):
+        pass
 
-# class Backtest(object):
-#
-#     def __init__(self, events, bars, strategy, execution,
-#                  start_date, end_date, start_time=None, end_time=None, initial_capital=1000000, name=None):
-#
-#         self.events = events
-#         self.bars = bars
-#         self.strategy = strategy
-#         self.execution = execution
-#         self.start_date = start_date
-#         self.end_date = end_date
-#         self.start_time = start_time
-#         self.end_time = end_time
-#         self.initial_capital = initial_capital
-#
-#         self.name = name
-#
-#         self.bars._load_day_data()
-#
-#
-#         # print self.portfolio.positions
-#         log.info("Backtest completed")
-#
-#         self.strategy.finished()
-#
-#         """
-#         time_series = self.portfolio.time_series
-#         price_series = self.portfolio.price_series[self.portfolio.symbols[0]]
-#         pnl_series = self.portfolio.pnl
-#         orders = self.portfolio.orders[self.portfolio.symbols[0]]
-#
-#         plot_backtest('backtest_results', time_series, price_series, pnl_series, orders)
-#         """
-#
-#
+    def _handle_fill_event(self, fill_event):
+        pass
