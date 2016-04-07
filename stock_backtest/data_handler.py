@@ -3,17 +3,24 @@ from trading.data_handler import DataHandler
 
 
 class StockBacktestDataHandler(DataHandler):
-    # TODO: multiple symbol support
-    def __init__(self, events, start_date, end_date):
+    def __init__(self, events, symbols, start_date, end_date):
         """
         Handles data for (one) stock using pandas/yahoo finance API.
         :param events: (Queue)
+        :param symbols: (list)
         :param start_date: (datetime)
         :param end_date: (datetime)
         :return:
         """
         super(StockBacktestDataHandler, self).__init__(events)
+        self.symbol_data = self.load_all_symbol_data()
 
+    def load_all_symbol_data(self):
+        """
+        On init, load all the data for the provided symbols.
+        :return: (dict) of (DataFrame)
+        """
+        raise NotImplementedError("Daniel, implement this")
 
     def get_latest(self, n=1):
         """
