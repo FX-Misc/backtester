@@ -13,9 +13,9 @@ class IBOrderEvent(events.OrderEvent):
     :param quantity: (int):
     :param price: (float): if limit order
     """
-    def __init__(self, dt, symbol, quantity, order_type=None):
+    def __init__(self, order_time, symbol, quantity, order_type=None):
         super(IBOrderEvent, self).__init__(symbol, order_type, price, quantity)
-        self.datetime = dt.datetime.now()
+        self.datetime = order_time.datetime.now()
 
     def __str__(self):
         return "ORDER | Symbol: {}, Time: {}, Qty: {}, Type: {}"\
@@ -30,7 +30,7 @@ class IBFillEvent(events.FillEvent):
         :param execution: (dict) execution details
         :param contract: (dict) contract details
         """
-        super(IBFillEvent, self).__init__(dt=execution['time'], symbol=contract['symbol'],
+        super(IBFillEvent, self).__init__(fill_time=execution['time'], symbol=contract['symbol'],
                                           exchange=execution['exchange'], quantity=execution['qty'],
                                           fill_cost=execution['qty']*execution['avg_price'], commission=0)
         # TODO: commission

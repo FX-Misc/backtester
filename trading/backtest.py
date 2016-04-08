@@ -16,6 +16,7 @@ class Backtest(object):
         self.start_date = start_date
         self.end_date = end_date
         self.continue_backtest = True
+        self.events_log = []
 
     __metaclass__ = ABCMeta
 
@@ -23,6 +24,7 @@ class Backtest(object):
         """
         Run the backtest.
         """
+        self.log_backtest_info()
         event_handler_thread = threading.Thread(target=self.event_handler, args=())
         event_handler_thread.start()
 
