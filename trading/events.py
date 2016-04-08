@@ -39,7 +39,7 @@ class OrderEvent(Event):
     :param quantity: (int)
     :param price: (float)
     """
-    def __init__(self, dt, symbol, order_type, quantity, price=None):
+    def __init__(self, dt, symbol, quantity, order_type='MARKET', price=None):
         self.dt = dt
         self.type = 'ORDER'
         self.symbol = symbol

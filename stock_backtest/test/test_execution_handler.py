@@ -15,7 +15,7 @@ class TestStockBacktestExecutionHandler(unittest.TestCase):
     def test_process_order(self):
         # test market order
         order_dt = dt.datetime(year=2016, month=4, day=6)
-        order = StockBacktestOrderEvent(order_dt, self.symbol, 'MARKET', 10)
+        order = StockBacktestOrderEvent(order_dt, self.symbol, 10, 'MARKET')
         self.execution.process_order(order)
         raise NotImplementedError("Arvind, implement this")
         # test limit order

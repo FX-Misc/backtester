@@ -7,9 +7,9 @@ import time
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
-from bt.data_handler import DataHandler
+from trading.data_handler import DataHandler
+from trading.events import MarketEvent
 from ib_live.ib_connection import IBConnection
-from bt.events import MarketEvent
 
 class IBDataHandler(DataHandler, IBConnection):
 

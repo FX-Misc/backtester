@@ -8,11 +8,11 @@ class Strategy(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, data, events, *args, **kwargs):
+    def __init__(self, events, data, *args, **kwargs):
         self.data = data
         self.events = events
         self.curr_time = None
-        self.initialize(*args, **kwargs)
+        # self.initialize(*args, **kwargs)
 
     def order(self, symbol, quantity, price=None, type='market'):
         """
@@ -23,7 +23,6 @@ class Strategy(object):
         :param type:
         :return:
         """
-        raise NotImplementedError("Strategy.order")
         # if self.curr_time is None:
         #     raise Exception("Must update self.curr_time")
         # if quantity == 0:
@@ -36,21 +35,21 @@ class Strategy(object):
         #
         # self.events.put(order_event)
 
-    @abstractmethod
-    def initialize(self, *args, **kwargs):
-        """
-        Initialize the strategy
-        """
-        raise NotImplementedError("initialize()")
+    # @abstractmethod
+    # def initialize(self, *args, **kwargs):
+    #     """
+    #     Initialize the strategy
+    #     """
+    #     raise NotImplementedError("initialize()")
 
     @abstractmethod
-    def new_tick(self, event):
+    def new_tick(self, market_event):
         """
         Call back for when the strategy receives a new tick.
-        :param event:
+        :param event: (MarketEvent)
         :return:
         """
-        self.curr_time = event.datetime
+        self.curr_time = market_event.datetime
 
     # @abstractmethod
     # def new_day(self, event):

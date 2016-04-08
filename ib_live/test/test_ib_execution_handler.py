@@ -21,7 +21,7 @@ class TestIBExecutionHandler(unittest.TestCase):
 
     def test_process_order(self):
         contract = create_futures_contract('GC', exp_month=4, exp_year=2016)
-        order_event = IBOrderEvent('GC', 'MARKET', 1, price=None)
+        order_event = IBOrderEvent('GC', 'MARKET', quantity=None, order_type=1, price=None)
         self.execution.process_order(order_event, contract)
         time.sleep(.5)
 

@@ -1,6 +1,7 @@
 import datetime as dt
 import utils.data_utils.yahoo_finance as yf
 from trading.data_handler import DataHandler
+from events import StockBacktestMarketEvent
 
 class StockBacktestDataHandler(DataHandler):
     def __init__(self, events, symbols, start_date, end_date):
@@ -18,7 +19,7 @@ class StockBacktestDataHandler(DataHandler):
         self.symbols = symbols
         self.all_symbol_data = yf.get_stock_data_multiple(symbols, start_date=start_date, end_date=end_date)
         self.curr_data = {}
-        self.curr_date = start_date
+        self.curr_dt = start_date
 
         self.continue_backtest = True
 
@@ -36,13 +37,13 @@ class StockBacktestDataHandler(DataHandler):
         Push the next-tick to the symbol data-structure (one day/line at a time)
         :return:
         """
-        if self.curr_date == self.end_date:
+        if self.curr_dt == self.end_date:
             self.continue_backtest = False
             return
         try:
             self._push_next_data()
         except KeyError:
-            self.curr_date += dt.timedelta(days=1)
+            self.curr_dt += dt.timedelta(days=1)
             self.update()
 
     def _push_next_data(self):
@@ -51,6 +52,7 @@ class StockBacktestDataHandler(DataHandler):
         """
         for symbol in self.symbols:
             if symbol not in self.curr_data:
-                self.curr_data[symbol] = self.all_symbol_data[symbol].ix[self.curr_date]
+                self.curr_data[symbol] = self.all_symbol_data[symbol].ix[self.curr_dt]
             else:
-                self.curr_data[symbol].append(self.all_symbol_data[symbol].ix[self.curr_date])
+                self.curr_data[symbol].append(self.all_symbol_data[symbol].ix[self.curr_dt])
+        self.events.put(StockBacktestMarketEvent(self.curr_dt))

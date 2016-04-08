@@ -12,6 +12,6 @@ end_date = dt.datetime(year=2016, month=4, day=1)
 strategy = None
 data = StockBacktestDataHandler(events, symbols, start_date, end_date)
 execution = StockBacktestExecutionHandler(events)
-backtest = StockBacktest(events, strategy,data, execution, start_date, end_date, initial_capital=1000000)
+backtest = StockBacktest(events, strategy,data, execution, start_date, end_date, initial_capital=100000)
 
 backtest.run()
