@@ -17,6 +17,7 @@ class StockBacktest(Backtest):
         assert isinstance(data, StockBacktestDataHandler)
         assert isinstance(execution, StockBacktestExecutionHandler)
         super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
+        self.initial_capital = initial_capital
 
     def event_handler(self):
         event_handlers = {
