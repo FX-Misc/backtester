@@ -34,3 +34,13 @@ class DataHandler(object):
         Also should send a MarketEvent to the queue.
         """
         raise NotImplementedError("DataHandler.update_bars()")
+
+class BacktestDataHandler(DataHandler):
+    def __init__(self, events, symbols, start_date, end_date, start_time=None, end_time=None):
+        super(BacktestDataHandler, self).__init__(events)
+        self.continue_backtest = True
+        self.symbols = symbols
+        self.start_date = start_date
+        self.end_date = end_date
+        self.start_time = start_time
+        self.end_time = end_time

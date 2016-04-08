@@ -1,9 +1,9 @@
 import datetime as dt
 import utils.data_utils.yahoo_finance as yf
-from trading.data_handler import DataHandler
+from trading.data_handler import BacktestDataHandler
 from events import StockBacktestMarketEvent
 
-class StockBacktestDataHandler(DataHandler):
+class StockBacktestDataHandler(BacktestDataHandler):
     def __init__(self, events, symbols, start_date, end_date):
         """
         Handles data for (one) stock using pandas/yahoo finance API.
@@ -13,10 +13,7 @@ class StockBacktestDataHandler(DataHandler):
         :param end_date: (datetime)
         :return:
         """
-        super(StockBacktestDataHandler, self).__init__(events)
-        self.start_date = start_date
-        self.end_date = end_date
-        self.symbols = symbols
+        super(StockBacktestDataHandler, self).__init__(events, symbols, start_date, end_date)
         self.all_symbol_data = yf.get_stock_data_multiple(symbols, start_date=start_date, end_date=end_date)
         self.curr_data = {}
         self.curr_dt = start_date
