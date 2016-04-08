@@ -1,3 +1,6 @@
+import tabulate
+import pandas as pd
+import numpy as np
 from Queue import Empty
 from data_handler import StockBacktestDataHandler
 from execution_handler import StockBacktestExecutionHandler
@@ -22,9 +25,10 @@ class StockBacktest(Backtest):
 
     def run(self):
         while True:
-            if self.continue_backtest:
+            if self.data.continue_backtest:
                 self.data.update()
             else:
+                self.strategy.finished()
                 break
             # Handle events
             while True:
@@ -37,6 +41,7 @@ class StockBacktest(Backtest):
                         self._event_handler(event)
 
         print "Finished backtest"
+
 
     def _event_handler(self, event):
         event_handlers = {

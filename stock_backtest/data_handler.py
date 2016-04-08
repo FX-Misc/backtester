@@ -37,11 +37,12 @@ class StockBacktestDataHandler(DataHandler):
         Push the next-tick to the symbol data-structure (one day/line at a time)
         :return:
         """
-        if self.curr_dt == self.end_date:
+        if self.curr_dt >= self.end_date:
             self.continue_backtest = False
             return
         try:
             self._push_next_data()
+            self.curr_dt += dt.timedelta(days=1)
         except KeyError:
             self.curr_dt += dt.timedelta(days=1)
             self.update()
