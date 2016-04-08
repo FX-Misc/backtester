@@ -28,11 +28,11 @@ from Queue import Queue
 if __name__ == "__main__":
     events = Queue()
     symbols = ['AAPL', 'FB']
-    start_date = dt.datetime(year=2012, month=1, day=1)
-    end_date = dt.datetime(year=2016, month=4, day=1)
-    data_handler = StockBacktestDataHandler(events, symbols, start_date, end_date)
-
-    data_handler.update()
-    data_handler.update()
-
-    foo = data_handler.get_latest()
+    foo = {x: 0 for x in symbols}
+    print foo
+    # start_date = dt.datetime(year=2012, month=1, day=1)
+    # end_date = dt.datetime(year=2016, month=4, day=1)
+    # data_handler = StockBacktestDataHandler(events, symbols, start_date, end_date)
+    # data_handler.update()
+    # data_handler.update()
+    # foo = data_handler.get_latest()

@@ -53,8 +53,8 @@ class BuyStrategy(Strategy):
     def _update_positions(self, fill_event):
         self.positions[fill_event.symbol] += fill_event.quantity
         self.capital -= fill_event.fill_cost
-        self.positions_series[fill_event.dt] = self.positions.copy()
-        self.cash_series[fill_event.dt] = self.capital
+        self.positions_series[fill_event.fill_time] = self.positions.copy()
+        self.cash_series[fill_event.fill_time] = self.capital
 
     def finished(self):
         symbols = ['AAPL', 'MSFT']

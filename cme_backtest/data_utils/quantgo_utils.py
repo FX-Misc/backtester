@@ -170,19 +170,17 @@ def _reindex_data(data):
 
 
 def get_data_furdays(symbols, start_date, end_date, raise_exception=False, **kwargs):
-    datas = []
-
+    data = []
     for date in rrule(DAILY, dtstart=start_date, until=end_date):
         try:
-            datas.append(get_data(symbols, date, **kwargs))
+            data.append(get_data(symbols, date, **kwargs))
         except (IOError, ValueError) as e:
             # data not found for day, skip
             if raise_exception:
                 raise e
             else:
                 pass
-
-    return datas
+    return data
 
 
 def merge_data(left_data, right_data, suffixes=('', None)):

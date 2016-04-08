@@ -34,7 +34,7 @@ class StockBacktestDataHandler(BacktestDataHandler):
         Push the next-tick to the symbol data-structure (one day/line at a time)
         :return:
         """
-        if self.curr_dt >= self.end_date:
+        if self.curr_dt > self.end_date:
             self.continue_backtest = False
             return
         try:

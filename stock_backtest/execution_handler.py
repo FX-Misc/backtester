@@ -80,9 +80,9 @@ class StockBacktestExecutionHandler(ExecutionHandler):
         """
         if order_event.quantity == 0:
             return
-        sym_data = self.symbol_data[order_event.symbol].ix[order_event.dt]
+        sym_data = self.symbol_data[order_event.symbol].ix[order_event.order_time]
         fill_price = sym_data[PRICE_FIELD]
-        fill_event = self.create_fill_event(order_event, fill_price, order_event.dt)
+        fill_event = self.create_fill_event(order_event, fill_price, order_event.order_time)
         self.events.put(fill_event)
 
     def create_fill_event(self, order_event, fill_price, fill_time):
