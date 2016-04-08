@@ -1,10 +1,8 @@
 import tabulate
 import pandas as pd
-import numpy as np
 from collections import OrderedDict
 from trading.events import OrderEvent
 from trading.strategy import Strategy
-
 
 PRICE_FIELD = 'Open'
 

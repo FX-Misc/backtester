@@ -1,6 +1,3 @@
-import tabulate
-import pandas as pd
-import numpy as np
 from Queue import Empty
 from data_handler import StockBacktestDataHandler
 from execution_handler import StockBacktestExecutionHandler
@@ -21,9 +18,12 @@ class StockBacktest(Backtest):
         assert isinstance(execution, StockBacktestExecutionHandler)
         super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
 
-        self.events_log = []
-
-    def run(self):
+    def event_handler(self):
+        event_handlers = {
+            'MARKET': self._handle_market_event,
+            'ORDER': self._handle_order_event,
+            'FILL': self._handle_fill_event
+        }
         while True:
             if self.data.continue_backtest:
                 self.data.update()
@@ -38,19 +38,7 @@ class StockBacktest(Backtest):
                     break
                 else:
                     if event is not None:
-                        self._event_handler(event)
-
-        print "Finished backtest"
-
-
-    def _event_handler(self, event):
-        event_handlers = {
-            'MARKET': self._handle_market_event,
-            'ORDER': self._handle_order_event,
-            'FILL': self._handle_fill_event
-        }
-
-        event_handlers[event.type](event)
+                        event_handlers[event.type](event)
 
     def _handle_market_event(self, market_event):
         self.strategy.new_tick(market_event)

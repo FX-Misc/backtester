@@ -1,4 +1,5 @@
 import logging
+import threading
 from abc import ABCMeta, abstractmethod
 log = logging.getLogger('Backtest')
 
@@ -18,13 +19,16 @@ class Backtest(object):
 
     __metaclass__ = ABCMeta
 
-    @abstractmethod
     def run(self):
         """
         Run the backtest.
-        :return:
         """
-        raise NotImplementedError("Backtest.run()")
+        event_handler_thread = threading.Thread(target=self.event_handler, args=())
+        event_handler_thread.start()
+
+    @abstractmethod
+    def event_handler(self):
+        raise NotImplementedError('Backtest.event_handler()')
 
     def log_backtest_info(self):
         info = 'Running backtest with parameters: \n ' \
