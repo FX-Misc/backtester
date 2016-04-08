@@ -1,8 +1,9 @@
 import datetime as dt
+import os
+
 import pandas as pd
 
-from data_path import get_file_path, get_date_and_sym
-import os
+from cme_backtest.data_utils.data_path import get_file_path, get_date_and_sym
 
 
 def make_second_bars(data, subscription='CME_Level_2', save=False, load_if_exists=True):

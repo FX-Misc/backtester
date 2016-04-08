@@ -1,9 +1,12 @@
-import logging
-import pandas as pd
 import datetime as dt
+import logging
+
+import pandas as pd
+
+from cme_backtest.data_utils.quantgo_utils import get_data, get_data_multi
 from events import CMEBacktestMarketEvent
 from trading.data_handler import BacktestDataHandler
-from utils.data_utils.quantgo_utils import get_data, get_data_multi
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 
