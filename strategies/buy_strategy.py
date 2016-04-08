@@ -63,6 +63,7 @@ class BuyStrategy(Strategy):
         results['cash'] = self.cash_series.values()
         results['position_value'] = all_data['AAPL']['Open']*results['AAPL']
         results['value'] = results['cash'] + results['position_value']
+        results['pnl'] = 100*results['value'].pct_change().fillna(0)
         print tabulate.tabulate(results, headers='keys', tablefmt='pipe')
 
 
