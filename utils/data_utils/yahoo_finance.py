@@ -41,7 +41,6 @@ def get_stock_data_multiple(symbols, start_date=None, end_date=None):
     :return: (OrderedDict) of DataFrames of stock data from start_date to end_date
     """
     data = OrderedDict()
-
     for symbol in symbols:
         symbol_data = get_stock_data(symbol, start_date, end_date)
         data[symbol] = symbol_data

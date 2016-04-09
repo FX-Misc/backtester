@@ -10,6 +10,7 @@ class BuyStrategy(Strategy):
     def __init__(self, events, data, initial_capital=1000000):
         super(BuyStrategy, self).__init__(events, data)
         self.curr_dt = None
+        self.initial_capital = initial_capital
         self.capital = initial_capital
 
         self.sym1 = 'AAPL'
@@ -64,8 +65,8 @@ class BuyStrategy(Strategy):
         results['position_value'] = all_data['AAPL']['Open']*results['AAPL']
         results['value'] = results['cash'] + results['position_value']
         results['pnl'] = 100*results['value'].pct_change().fillna(0)
+        results['pnl_total'] = 1-results['value']/self.initial_capital
         print tabulate.tabulate(results, headers='keys', tablefmt='pipe')
-
 
     def order(self, symbol, quantity, order_type='MARKET', price=None,):
         order = OrderEvent(self.curr_dt, symbol, quantity, order_type, price)

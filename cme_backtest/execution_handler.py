@@ -1,36 +1,33 @@
-import sys
-import os
+# import sys
+# import os
 import logging
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
-log = logging.getLogger('CME_BACKTEST_EXECUTION_HANDLER')
-
-import datetime as dt
 import random
-from bt.cme_backtest_events import CMEBacktestFillEvent, CMEBacktestOrderEvent
-from datautils.datafeed import get_data_multi
-from bt.execution_handler import ExecutionHandler
+import numpy as np
+import datetime as dt
+from data_utils.quantgo_utils import get_data_multi
+from events import CMEBacktestFillEvent, CMEBacktestOrderEvent
+from trading.execution_handler import ExecutionHandler
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
+log = logging.getLogger('Execution Handljer')
 
 
 # TODO: parameters instead of macros
-
 CME_HISTORICAL_ORDER_DELAY = dt.timedelta(seconds=.01)
 CME_HISTORICAL_TRANSACTION_COST = 0
 MARKET_ORDERS = True
-
 LIMIT_FILL_PROBABILITY = 0.1
 
-class CMEBacktestExecutionHandler(ExecutionHandler):
-    def __init__(self, symbols, events, second_bars=True, commission=0):
-        self.symbols = symbols
-        self.events = events
-        self.second_bars = second_bars
-        self.current_day_data = None
 
-        self.commission = commission
+class CMEBacktestExecutionHandler(ExecutionHandler):
+    def __init__(self, symbols, events, second_bars=True, commission=None):
+        super(CMEBacktestExecutionHandler, self).__init__(events)
+        self.symbols = symbols
+        self.second_bars = second_bars
+        self.commission = commission if commission is not None else CME_HISTORICAL_TRANSACTION_COST
 
         self.resting_orders = []
-
+        self.current_day_data = None
         self.multi_data = False
         if len(self.symbols) > 1:
             self.multi_data = True
@@ -39,11 +36,9 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         """
         Updates the current_day_data and places the order.
         """
-        assert type(order_event) is CMEBacktestOrderEvent, \
-            "CMEBacktestExecutionHandler - event must be CMEBacktestOrder"
+        assert type(order_event) is CMEBacktestOrderEvent, "Order event must be CMEBacktestOrder"
         self._check_day_data(order_event.datetime)
-        assert self.current_day_data is not None, \
-            "No data for current day!"
+        assert self.current_day_data is not None, "No data for current day!"
         self.place_order(order_event)
 
     def process_resting_orders(self, market_event):
@@ -51,7 +46,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         On new market update, check resting orders to see if they can be filled.
         """
         assert market_event.type is 'MARKET'
-        if len(self.resting_orders) == 0:
+        if not self.resting_orders:
             return
         for resting_order in self.resting_orders:
             fill_time = self._get_fill_time(market_event.datetime, resting_order.symbol)
@@ -67,24 +62,26 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
 
     def place_order(self, order_event):
         """
-        Places a MARKET/LIMIT order
+        Places a MARKET/LIMIT order.
         """
         self._check_day_data(order_event.datetime)
         if order_event.order_type == 'MARKET':
-            # fill immediately at the next tick
-            fill_time = self._get_fill_time(order_event.datetime, order_event.symbol)
-            self._fill_market_order(order_event, fill_time)
+            self._fill_market_order(order_event)
         elif order_event.order_type == 'LIMIT':
-            # place a limit order
-            # TODO: check if it is market-ble
+            if self._check_limit_order(order_event, order_event.datetime):
+                pass
             self.resting_orders.append(order_event)
 
-    def _fill_market_order(self, order_event, fill_time):
+    def _check_limit_order(self, order_event, dt):
+        pass
+
+    def _fill_market_order(self, order_event):
         """
         Fills a market order by crossing the spread at the current best bid/offer
         """
         if order_event.quantity == 0:
             return
+        fill_time = self._get_fill_time(order_event.datetime, order_event.symbol)
         sym_data = self.current_day_data[order_event.symbol]
         direction = self._get_order_direction(order_event)
         if direction == 1:
@@ -114,8 +111,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         if resting_order.price < self.current_day_data[symbol]['level_1_price_sell'].asof(fill_time) and self._limit_fill() is True \
                 or resting_order.price >= self.current_day_data[symbol]['level_1_price_sell'].asof(fill_time):
             return True
-        else:
-            return False
+        return False
 
     def _check_fill_limit_sell(self, resting_order, fill_time):
         """
@@ -139,12 +135,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
             1: BUY
             -1: SELL
         """
-        if order_event.quantity  == 0:
-            return 0
-        elif order_event.quantity < 0:
-            return -1
-        else:
-            return 1
+        return np.sign(order_event.quantity)
 
     def _get_fill_time(self, order_time, symbol):
         """
@@ -155,10 +146,9 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         return fill_time
 
     def create_fill_event(self, order_event, fill_price, fill_time):
-        exchange = 'CMEBacktest'
-        fill_cost = order_event.quantity*fill_price
-        fill_event = CMEBacktestFillEvent(order_event.datetime, fill_time, order_event.symbol, order_event.quantity,
-                                          fill_cost, commission=self.commission)
+        fill_cost = float(order_event.quantity*fill_price)
+        fill_event = CMEBacktestFillEvent(order_event.datetime, fill_time, order_event.symbol,
+                                          order_event.quantity, fill_cost, commission=self.commission)
         log.info(fill_event)
         self.events.put(fill_event)
 
@@ -175,19 +165,17 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
     @staticmethod
     def compare_dates(dt1, dt2):
         """
-        Returns:
-            True: if the year, month, and day of dt1 and dt2 match
-            False: otherwise
+        Check if datetime dates are the same.
+        :param dt1: (DateTime)
+        :param dt2: (DateTime)
+        :return: (bool)
         """
-        if dt1.year == dt2.year and dt1.month == dt2.month and dt1.day == dt2.day:
-            return True
-        else:
-            return False
+        return dt1.year == dt2.year and dt1.month == dt2.month and dt1.day == dt2.day
 
     @staticmethod
     def _limit_fill():
         """
-        Probability function for limit fill
+        Probability function for limit fill.
         """
         z = random.randint(0, 10)
         if z/10.0 < LIMIT_FILL_PROBABILITY:

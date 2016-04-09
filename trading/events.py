@@ -64,9 +64,9 @@ class FillEvent(Event):
 
         :param fill_time: (DateTime) fill time
         :param symbol: (str)
-        :param exchange: (str)
         :param quantity: (int)
         :param fill_cost: (float)
+        :param exchange: (str)
         :param commission: (float)
         :return:
         """

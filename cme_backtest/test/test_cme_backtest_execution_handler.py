@@ -2,6 +2,7 @@ import unittest
 import datetime as dt
 from Queue import Queue
 from cme_backtest.execution_handler import CMEBacktestExecutionHandler
+from cme_backtest.events import CMEBacktestOrderEvent
 
 class TestCMEBacktestExecutionHandler(unittest.TestCase):
     def test_compare_dates(self):
@@ -38,6 +39,3 @@ class TestCMEBacktestExecutionHandler(unittest.TestCase):
     #     order_dt = dt.datetime(year=2015, month=11, day=18)
     #     order_event = CMEBacktestOrderEvent('test', 'MARKET', 1, 1, order_dt)
     #     execution_handler.process_order(order_event)
-
-if __name__ == "__main__":
-    unittest.main()

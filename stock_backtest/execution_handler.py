@@ -6,6 +6,7 @@ from trading.execution_handler import ExecutionHandler
 COMMISSION = 5.0
 PRICE_FIELD = 'Open'  # which O/H/L/C field to fill orders with
 
+
 class StockBacktestExecutionHandler(ExecutionHandler):
 
     def __init__(self, events):
@@ -19,7 +20,6 @@ class StockBacktestExecutionHandler(ExecutionHandler):
         self.curr_dt = None
 
     def process_order(self, order_event):
-        # assert isinstance(order_event, StockBacktestOrderEvent)
         self._check_symbol_data(order_event.symbol)
         self._place_order(order_event)
 
@@ -31,6 +31,18 @@ class StockBacktestExecutionHandler(ExecutionHandler):
         self.curr_dt = market_event.dt
         for resting_order in self.resting_orders:
             self._process_limit_order(resting_order)
+
+    def _place_order(self, order_event):
+        """
+        Handles either a MARKET or LIMIT order.
+        :param order_event: (StockBacktestOrderEvent)
+        :return:
+        """
+        order_handlers = {
+            'MARKET': self._fill_market_order,
+            'LIMIT': self._process_limit_order
+        }
+        order_handlers[order_event.order_type](order_event)
 
     def _process_limit_order(self, order_event, resting=False):
         """
@@ -61,17 +73,6 @@ class StockBacktestExecutionHandler(ExecutionHandler):
         if symbol not in self.symbol_data:
            self.symbol_data[symbol] = yf.get_stock_data(symbol)
 
-    def _place_order(self, order_event):
-        """
-        Handles either a MARKET or LIMIT order.
-        :param order_event: (StockBacktestOrderEvent)
-        :return:
-        """
-        if order_event.order_type is 'MARKET':
-            self._fill_market_order(order_event)  # fill immediately at the current price
-
-        elif order_event.order_type is 'LIMIT':
-            self._process_limit_order(order_event)  # place a limit order
 
     def _fill_market_order(self, order_event):
         """

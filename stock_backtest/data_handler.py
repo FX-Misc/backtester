@@ -17,7 +17,6 @@ class StockBacktestDataHandler(BacktestDataHandler):
         self.all_symbol_data = yf.get_stock_data_multiple(symbols, start_date=start_date, end_date=end_date)
         self.curr_data = {}
         self.curr_dt = start_date
-
         self.continue_backtest = True
 
     def get_latest(self):
