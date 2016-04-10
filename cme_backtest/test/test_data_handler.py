@@ -17,4 +17,3 @@ if __name__ == "__main__":
     data_handler = CMEBacktestDataHandler(events, symbols, start_date, end_date)
     data_handler.update()
     foo = data_handler.get_latest()
-    print type(foo)

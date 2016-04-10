@@ -1,3 +1,4 @@
+import logging
 from abc import ABCMeta, abstractmethod
 from events import OrderEvent
 
@@ -9,6 +10,7 @@ class Strategy(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, events, data, *args, **kwargs):
+
         self.data = data
         self.events = events
         self.curr_time = None
@@ -23,17 +25,7 @@ class Strategy(object):
         :param type:
         :return:
         """
-        # if self.curr_time is None:
-        #     raise Exception("Must update self.curr_time")
-        # if quantity == 0:
-        #     return
-        #
-        # if type == "market":
-        #     order_event = OrderEvent(symbol, self.curr_time, 'MARKET', quantity, price)
-        # else:
-        #     raise NotImplementedError("Order type {} not implemented".format(type))
-        #
-        # self.events.put(order_event)
+        raise NotImplementedError('Strategy.order()')
 
     # @abstractmethod
     # def initialize(self, *args, **kwargs):

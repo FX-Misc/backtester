@@ -45,7 +45,6 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         return latest_data
 
     def update(self):
-        print 'update'
         if self.curr_day > self.end_date:
             self.continue_backtest = False
             return

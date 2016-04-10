@@ -19,5 +19,3 @@ strategy = BuyStrategy(events, data, initial_capital=1000000)
 backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
 
 results = backtest.run()
-
-print results  # graph this

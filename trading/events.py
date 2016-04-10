@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 class Event(object):
     """
     Types include:
@@ -53,6 +55,19 @@ class OrderEvent(Event):
                 self.price = float(self.price)
             except TypeError:
                 print "LIMIT order has invalid price."
+
+    def info(self):
+        return {
+            'dt': self.order_time.strftime("%-m/%-d/%Y %H:%M"),
+            'type': self.order_type,
+            'symbol': self.symbol,
+            'quantity': self.quantity,
+            'price': self.price,
+        }
+
+    @classmethod
+    def from_json(cls):
+        raise NotImplementedError()
 
 
 class FillEvent(Event):

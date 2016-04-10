@@ -1,7 +1,7 @@
 import logging
 import threading
+import json
 from abc import ABCMeta, abstractmethod
-log = logging.getLogger('Backtest')
 
 class Backtest(object):
 
@@ -16,7 +16,17 @@ class Backtest(object):
         self.start_date = start_date
         self.end_date = end_date
         self.continue_backtest = True
-        self.events_log = []
+        logFormatter = logging.Formatter("%(asctime)s %(message)s")
+        logging.basicConfig(filename='log',
+                            filemode='w',
+                            format='%(asctime)s,%(msecs)d %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+        logging.getLogger().addHandler(logging.StreamHandler())
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setFormatter(logFormatter)
+        self.logger = logging.getLogger('Backtest')
+        self.logger.addHandler(consoleHandler)
 
     __metaclass__ = ABCMeta
 
@@ -24,7 +34,7 @@ class Backtest(object):
         """
         Run the backtest.
         """
-        self.log_backtest_info()
+        self._log_backtest_info()
         event_handler_thread = threading.Thread(target=self.event_handler, args=())
         event_handler_thread.start()
 
@@ -32,12 +42,11 @@ class Backtest(object):
     def event_handler(self):
         raise NotImplementedError('Backtest.event_handler()')
 
-    def log_backtest_info(self):
-        info = 'Running backtest with parameters: \n ' \
-               'Strategy: {} \n ' \
-               'Execution: {} \n ' \
-               'Start date: {}, End date: {}' \
-            .format(self.strategy.__class__.__name__,
-                    self.execution.__class__.__name__,
-                    self.start_date, self.end_date)
-        log.info(info)
+    def _log_backtest_info(self):
+        info = {
+            'STRATEGY': self.strategy.__class__.__name__,
+            'EXECUTION': self.execution.__class__.__name__,
+            'START': self.start_date.strftime("%-m/%-d/%Y %H:%M"),
+            'END': self.end_date.strftime("%-m/%-d/%Y %H:%M"),
+        }
+        self.logger.info(json.dumps(info))
