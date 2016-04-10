@@ -16,7 +16,11 @@ class Strategy(object):
         self.events = events
         self.curr_time = None
         self.positions = {}
-        self.realized_pnl = 0
+        self.curr_pnl = 0
+
+        # self.positions_series =
+        # self.price_series = {sym: [] for sym in self.symbols}
+
         # self.initialize(*args, **kwargs)
 
         logFormatter = logging.Formatter("%(asctime)s %(message)s")
@@ -50,6 +54,10 @@ class Strategy(object):
         """
         self.curr_time = market_event.datetime
 
+    @abstractmethod
+    def update_price_series(self):
+        raise NotImplementedError('Strategy.update_price_series()')
+
     def update_positions(self, fill_event):
         """
 
@@ -59,6 +67,19 @@ class Strategy(object):
             self.positions[fill_event.symbol] = 0
         self.positions[fill_event.symbol] += fill_event.quantity
         self.logger.info(json.dumps(self.positions.copy()))
+
+
+    # def update_metrics(self):
+    #     last_bar = self.bars.get_latest_bars(n=1)
+    #     pnl_ = self.cash + sum([self.pos[sym] * self.contract_multiplier[sym] *
+    #                             (last_bar['level_1_price_buy']
+    #                              if self.pos[sym] < 0 else
+    #                              last_bar['level_1_price_sell']) for sym in self.symbols])
+    #     self.pnl.append(pnl_)
+    #     self.time_series.append(self.cur_time)
+    #     for sym in self.symbols:
+    #         self.price_series[sym].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
+    #         self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
 
     @abstractmethod
     def new_fill(self, fill_event):

@@ -15,42 +15,46 @@ from pyfolio.pyfolio.tears import create_full_tear_sheet
 from analytics.plotting import plot_holdings
 # from pyfolio.pyfolio.plotting import plot_holdings
 
-events = Queue()
-symbols = ['AAPL', 'MSFT']
-start_date = dt.datetime(year=2012, month=1, day=1)
-end_date = dt.datetime(year=2012, month=1, day=31)
-data = StockBacktestDataHandler(events, symbols, start_date, end_date)
-execution = StockBacktestExecutionHandler(events)
-strategy = BuyStrategy(events, data, initial_capital=1000000)
-backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
+def run():
+    events = Queue()
+    symbols = ['AAPL', 'MSFT']
+    start_date = dt.datetime(year=2012, month=1, day=1)
+    end_date = dt.datetime(year=2012, month=1, day=31)
+    data = StockBacktestDataHandler(events, symbols, start_date, end_date)
+    execution = StockBacktestExecutionHandler(events)
+    strategy = BuyStrategy(events, data, initial_capital=1000000)
+    backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
+    backtest.run()
+    while(1):
+        if(not backtest.continue_backtest):
+            symbols = ['AAPL', 'MSFT']
+            all_data = data.all_symbol_data
+            results = pd.DataFrame(data=strategy.positions_series.values(), index=strategy.positions_series.keys())
+            results['cash'] = strategy.cash_series.values()
+            results['position_value'] = all_data['AAPL']['Open']*results['AAPL']
+            results['value'] = results['cash'] + results['position_value']
+            results['pnl'] = 100*results['value'].pct_change().fillna(0)
+            results['returns'] = 1-results['value']/strategy.initial_capital
+            # print tabulate.tabulate(results, headers='keys', tablefmt='pipe')
 
-results = backtest.run()
-while(1):
-    if(not backtest.continue_backtest):
-        symbols = ['AAPL', 'MSFT']
-        all_data = data.all_symbol_data
-        results = pd.DataFrame(data=strategy.positions_series.values(), index=strategy.positions_series.keys())
-        results['cash'] = strategy.cash_series.values()
-        results['position_value'] = all_data['AAPL']['Open']*results['AAPL']
-        results['value'] = results['cash'] + results['position_value']
-        results['pnl'] = 100*results['value'].pct_change().fillna(0)
-        results['returns'] = 1-results['value']/strategy.initial_capital
-        # print tabulate.tabulate(results, headers='keys', tablefmt='pipe')
+            returns = results['returns']
+            holdings_fig = plt.figure()
 
-        returns = results['returns']
-        positions = pd.DataFrame(data=np.array([results['AAPL'], results['cash']]).transpose(),
+            plt.show()
+            break
+
+def plot_all_holdings(symbols):
+    holdings_fig = plt.figure()
+    for i in range(len(symbols)):
+        symbol = symbols[i]
+        positions = pd.DataFrame(data=np.array([results[symbol], results['cash']]).transpose(),
                                  index=results.index,
-                                 columns=['AAPL', 'cash'])
-        # print tabulate.tabulate(positions, headers='keys', tablefmt='pipe')
-        # print returns
-        # print tabulate.tabulate(returns, headers='keys', tablefmt='pipe')
-        # tear_sheet = create_full_tear_sheet(returns, positions)
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
+                                 columns=[symbol, 'cash'])
+        ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
         plot_holdings(returns, positions, ax=ax)
-        plt.show()
-        break
 
+if __name__ == "__main__":
+    run()
 
  # Parameters
  #    ----------

@@ -32,7 +32,8 @@ class StockBacktest(Backtest):
             else:
                 self.strategy.finished()
                 self.continue_backtest = False
-                break
+                return 'foo'
+                # break
             while True:
                 try:
                     event = self.events.get(False)

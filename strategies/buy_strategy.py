@@ -1,5 +1,6 @@
 import tabulate
 import pandas as pd
+from random import randint
 from collections import OrderedDict
 from trading.events import OrderEvent
 from trading.strategy import Strategy
@@ -30,9 +31,8 @@ class BuyStrategy(Strategy):
     def new_tick(self, market_event):
         self.curr_dt = market_event.dt
         self.latest_data = self.data.get_latest()
-
-        aapl_order_qty = 1
-        msft_order_qty = 10
+        aapl_order_qty = randint(-4,4)
+        msft_order_qty = randint(-12,12)
         temp_capital = self.capital
         if self._check_order(temp_capital, self.sym1, aapl_order_qty):
             self.order(self.sym1, aapl_order_qty)
