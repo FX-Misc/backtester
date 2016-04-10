@@ -52,4 +52,6 @@ class StockBacktest(Backtest):
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill(fill_event)
+        self.logger.info(json.dumps(fill_event.info()))
+        self.strategy.update_positions(fill_event)
 

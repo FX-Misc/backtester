@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
 class Event(object):
@@ -8,7 +9,15 @@ class Event(object):
         ORDER
         FILL
     """
+    __metaclass__ = ABCMeta
 
+    @abstractmethod
+    def info(self):
+        """
+        For logging purposes.
+        :return: (dict)
+        """
+        raise NotImplementedError("Event.info()")
 
 class MarketEvent(Event):
     """
@@ -18,6 +27,8 @@ class MarketEvent(Event):
         self.type = 'MARKET'
         self.dt = dt
 
+    def info(self):
+        return None
 
 # class NewDayEvent(Event):
 #     def __init__(self, prev_data, next_date):
@@ -90,4 +101,15 @@ class FillEvent(Event):
         self.symbol = symbol
         self.quantity = quantity
         self.fill_cost = fill_cost
+        self.exchange = exchange
         self.commission = commission
+
+    def info(self):
+        return {
+            'dt': self.fill_time.strftime(("%-m/%-d/%Y %H:%M")),
+            'symbol': self.symbol,
+            'quantity': self.quantity,
+            'cost': self.fill_cost,
+            'exchange': self.exchange,
+            'commission': self.commission
+        }

@@ -1,6 +1,7 @@
+import json
 import logging
 from abc import ABCMeta, abstractmethod
-from events import OrderEvent
+
 
 class Strategy(object):
     """
@@ -14,9 +15,19 @@ class Strategy(object):
         self.data = data
         self.events = events
         self.curr_time = None
+        self.positions = {}
         # self.initialize(*args, **kwargs)
+        logFormatter = logging.Formatter("%(asctime)s %(message)s")
+        fileHandler = logging.FileHandler('output/strategy_log', mode='w')
+        fileHandler.setFormatter(logFormatter)
+        self.logger = logging.getLogger('Strategy')
+        logging.basicConfig(format=' %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.INFO)
+        self.logger.addHandler(fileHandler)
 
-    def order(self, symbol, quantity, price=None, type='market'):
+
+    def order(self, symbol, quantity, price=None, type='MARKET'):
         """
         Generate an order and place it into events.
         :param symbol:
@@ -27,13 +38,6 @@ class Strategy(object):
         """
         raise NotImplementedError('Strategy.order()')
 
-    # @abstractmethod
-    # def initialize(self, *args, **kwargs):
-    #     """
-    #     Initialize the strategy
-    #     """
-    #     raise NotImplementedError("initialize()")
-
     @abstractmethod
     def new_tick(self, market_event):
         """
@@ -43,20 +47,21 @@ class Strategy(object):
         """
         self.curr_time = market_event.datetime
 
-    # @abstractmethod
-    # def new_day(self, event):
-    #     """
-    #     Call back for when the strategy receives a tick that is a new day.
-    #     :param event:
-    #     :return:
-    #     """
-    #     raise NotImplementedError("new_day()")
+    def update_positions(self, fill_event):
+        """
+
+        """
+        self.positions['dt'] = fill_event.fill_time.strftime("%y/%m/%e-%H:%M:%S.%f")
+        if fill_event.symbol not in self.positions:
+            self.positions[fill_event.symbol] = 0
+        self.positions[fill_event.symbol] += fill_event.quantity
+        self.logger.info(json.dumps(self.positions.copy()))
 
     @abstractmethod
-    def new_fill(self, event):
+    def new_fill(self, fill_event):
         """
         Call back for when an order placed by the strategy is filled.
-        :param event: (FillEvent)
+        :param fill_event: (FillEvent)
         :return:
         """
         raise NotImplementedError("Strategy.new_fill()")
@@ -67,3 +72,19 @@ class Strategy(object):
         Call back for when a backtest (or live-trading) is finished.
         """
         raise NotImplementedError("Strategy.finished()")
+
+    # @abstractmethod
+    # def initialize(self, *args, **kwargs):
+    #     """
+    #     Initialize the strategy
+    #     """
+    #     raise NotImplementedError("initialize()")
+
+    # @abstractmethod
+    # def new_day(self, event):
+    #     """
+    #     Call back for when the strategy receives a tick that is a new day.
+    #     :param event:
+    #     :return:
+    #     """
+    #     raise NotImplementedError("new_day()")
