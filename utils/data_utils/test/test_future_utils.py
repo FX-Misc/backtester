@@ -39,9 +39,27 @@ class TestFutureUtils(unittest.TestCase):
         self.assertEqual(1231.1, test_data_date['Settle'])
         self.assertEqual(42.0, test_data_date['Volume'])
         self.assertEqual(32.0, test_data_date['Open Interest'])
-        # print tabulate.tabulate(data, headers='keys', tablefmt='pipe')
 
     def test_get_highest_volume_contract(self):
         highest_volume_contract = fut.get_highest_volume_contract(self.symbol, self.curr_year, self.curr_month,
                                                                   self.curr_day)
         self.assertEqual('GCM6', highest_volume_contract)
+
+    def test_get_contract_specs(self):
+        specs = fut.get_contract_specs(self.symbol)
+        self.assertEqual(specs['Name'], 'Gold-COMEX')
+        self.assertEqual(specs['Exchange'], 'CME')
+        self.assertEqual(specs['Quandl Code'], 'CME/GC')
+        self.assertEqual(specs['Symbol'], 'GC')
+        self.assertEqual(specs['Tick Value'], '10')
+        self.assertEqual(specs['Contract Size'], '100 oz troy')
+        self.assertEqual(specs['Active'], '1')
+        self.assertEqual(specs['Delievery Months'], 'GHJKMQVZ')
+        self.assertEqual(specs['Session Type'], 'Active')
+        self.assertEqual(specs['Start Date'], '1/2/1975')
+        self.assertEqual(specs['Units'], 'USD/troy oz')
+        self.assertEqual(specs['Currency'], 'USD')
+        self.assertEqual(specs['Trading Times'], '18:00 - 17:15')
+        self.assertEqual(specs['Minimum Tick Value'], '1')
+        self.assertEqual(specs['Full Point Value'], '100')
+        self.assertEqual(specs['Terminal Point Value'], '10')

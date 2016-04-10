@@ -1,3 +1,4 @@
+import csv
 import datetime as dt
 import Quandl as qd
 from dateutil.relativedelta import relativedelta
@@ -100,3 +101,17 @@ def get_highest_volume_contract(symbol, year, month, day):
             pass
 
     return highest_volume_contract
+
+def get_contract_specs(symbol):
+    """
+
+    :param symbol:
+    :return:
+    """
+    reader = csv.DictReader(open('contract_specs.csv'))
+    contracts = {}
+    for row in reader:
+        k = row['Symbol']
+        contracts[k] = row
+    specs = contracts[symbol]
+    return specs

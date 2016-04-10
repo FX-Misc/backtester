@@ -6,8 +6,10 @@ from trading.backtest import Backtest
 
 
 class StockBacktest(Backtest):
-    def __init__(self, events, strategy, data, execution, start_date, end_date, initial_capital=1000000):
+    def __init__(self, events, strategy, data, execution, start_date, end_date, analytics=None,
+                 initial_capital=1000000):
         """
+        :param analytics:
         :param events: (Queue)
         :param strategy: (Strategy)
         :param data: (DataHandler)
@@ -32,8 +34,7 @@ class StockBacktest(Backtest):
             else:
                 self.strategy.finished()
                 self.continue_backtest = False
-                return 'foo'
-                # break
+                break
             while True:
                 try:
                     event = self.events.get(False)

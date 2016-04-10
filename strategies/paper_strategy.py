@@ -15,18 +15,16 @@ from sklearn.externals import joblib
 from hashlib import md5
 import time
 import prediction.features as feats
-from bt.cme_data_handler import CMEDataHandlerHistorical
-from bt.strategy import Strategy
-from bt.cme_backtest_execution_handler import CMEBacktestExecutionHandler
-from bt.backtest import Backtest
-from datautils.datafeed import get_data_furdays
+from cme_backtest.data_handler import CMEBacktestDataHandler
+from trading.strategy import Strategy
+from cme_backtest.execution_handler import CMEBacktestExecutionHandler
+from cme_backtest.backtest import CMEBacktest
+from cme_backtest.data_utils.quantgo_utils import get_data_furdays
 import prediction.featutils as featutils
 from plotting.plot import plot_backtest, FIGS_DIR
 
 NOT_UPDATING_FEATURES = False
-
 BACKTEST_NAME = None
-
 RUN_TIME = dt.datetime.now()
 
 granularity = 5
@@ -37,9 +35,7 @@ x_feats = [
     feats.mean_reversion_signal(hl, window),
     feats.ema_diff(window/2)
 ]
-
 drop_cols = featutils.drop_orderbook(min_keep_level=1, depth=5)
-
 
 class ClassifierStrategy(Strategy):
 
@@ -292,8 +288,6 @@ class ClassifierStrategy(Strategy):
             os.makedirs(os.path.dirname(fpath))
 
         return fpath
-
-
 
 def run_forwardtest():
     # parameters
