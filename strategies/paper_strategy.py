@@ -44,7 +44,7 @@ class ClassifierStrategy(Strategy):
                    start_time=dt.time(hour=0), closing_time=dt.time(hour=23, minute=59), standardize=False, take_profit_threshold=None,
                    take_profit_down_only=False, order_qty=1):
 
-        self.symbols = self.bars.symbols
+        self.symbols = self.data.symbols
         self.contract_multiplier = contract_multiplier
         self.transaction_costs = transaction_costs
         self.slippage = slippage
@@ -91,15 +91,10 @@ class ClassifierStrategy(Strategy):
             feat(bars)
 
     def new_tick(self, market_event):
-
         self.cur_time = market_event.datetime
-
-        bars = self.bars.get_latest_bars(n=window)
-
+        bars = self.data.get_latest_bars(n=window)
         self.add_features(bars)
-
         bar = bars.iloc[-1]
-
         self.update_metrics()
 
         for sym in self.symbols:
@@ -207,7 +202,6 @@ class ClassifierStrategy(Strategy):
         self.orders[sym].append((self.cur_time, fill_event.quantity, self.pos[sym], abs(fill_event.fill_cost / float(fill_event.quantity))))
 
     def finished(self):
-
         log_returns = np.diff(np.log(self.daily_pnl))
         sharpe = np.sqrt(252) * (np.mean(log_returns) / np.std(log_returns))
         max_drawdown = np.min(
@@ -251,7 +245,7 @@ class ClassifierStrategy(Strategy):
                       self.total_probs[self.symbols[0]])
 
     def update_metrics(self):
-        last_bar = self.bars.get_latest_bars(n=1)
+        last_bar = self.data.get_latest_bars(n=1)
         pnl_ = self.cash + sum([self.pos[sym] * self.contract_multiplier[sym] *
                                 (last_bar['level_1_price_buy']
                                  if self.pos[sym] < 0 else
@@ -313,10 +307,8 @@ def run_forwardtest():
 
     events = Queue()
 
-    bars = CMEDataHandlerHistorical(events, symbols, start_date, end_date,
+    bars = CMEBacktestDataHandler(events, symbols, start_date, end_date,
                                     second_bars=True,
-                                    add_features=False,
-                                    standardize=standardize,
                                     start_time=dt.timedelta(hours=3),
                                     end_time=dt.timedelta(hours=22))
 
@@ -334,7 +326,7 @@ def run_forwardtest():
                                   standardize=standardize)
 
     execution = CMEBacktestExecutionHandler(symbols, events, second_bars=True)
-    backtest = Backtest(events, bars, strategy, execution, start_date, end_date)
+    backtest = CMEBacktest(events, bars, strategy, execution, start_date, end_date)
     backtest.run()
 
 if __name__ == "__main__":

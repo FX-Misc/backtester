@@ -3,11 +3,11 @@ import pandas as pd
 from random import randint
 from collections import OrderedDict
 from trading.events import OrderEvent
-from trading.strategy import Strategy
+from trading.strategy import StockStrategy
 
 PRICE_FIELD = 'Open'
 
-class BuyStrategy(Strategy):
+class BuyStrategy(StockStrategy):
     def __init__(self, events, data, initial_capital=1000000):
         super(BuyStrategy, self).__init__(events, data)
         self.curr_dt = None

@@ -4,11 +4,11 @@ from data_handler import CMEBacktestDataHandler
 from trading.backtest import Backtest
 
 class CMEBacktest(Backtest):
-    def __init__(self, events, strategy, data, execution, start_date, end_date,
+    def __init__(self, events, strategy, data, execution, start_date, end_date, analytics=None,
                  start_time=None, end_time=None):
 
         assert isinstance(data, CMEBacktestDataHandler)
-        super(CMEBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
+        super(CMEBacktest, self).__init__(events, strategy, data, execution, analytics, start_date, end_date)
         self.cash = 0
 
     def event_handler(self):

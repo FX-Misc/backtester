@@ -6,13 +6,13 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
+import pyfolio.pyfolio.tears as tears
 from Queue import Queue
 from stock_backtest.data_handler import StockBacktestDataHandler
 from stock_backtest.execution_handler import StockBacktestExecutionHandler
 from stock_backtest.backtest import StockBacktest
 from strategies.buy_strategy import BuyStrategy
-from pyfolio.pyfolio.tears import create_full_tear_sheet
-from analytics.plotting import plot_holdings
+import analytics.tears as tears
 # from pyfolio.pyfolio.plotting import plot_holdings
 
 def run():
@@ -35,12 +35,13 @@ def run():
             results['value'] = results['cash'] + results['position_value']
             results['pnl'] = 100*results['value'].pct_change().fillna(0)
             results['returns'] = 1-results['value']/strategy.initial_capital
-            # print tabulate.tabulate(results, headers='keys', tablefmt='pipe')
-
+            #  tabulate.tabulate(results, headers='keys', tablefmt='pipe')
+            # returns = pd.Series(results, index=results.index.tz_localize(None), copy=True)
             returns = results['returns']
-            holdings_fig = plt.figure()
-
-            plt.show()
+            tear_sheet = tears.create_returns_tear_sheet(returns)
+            # holdings_fig = plt.figure()
+            #
+            # plt.show()
             break
 
 def plot_all_holdings(symbols):

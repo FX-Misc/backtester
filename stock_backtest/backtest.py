@@ -6,8 +6,7 @@ from trading.backtest import Backtest
 
 
 class StockBacktest(Backtest):
-    def __init__(self, events, strategy, data, execution, start_date, end_date, analytics=None,
-                 initial_capital=1000000):
+    def __init__(self, events, strategy, data, execution, start_date, end_date, analytics=None, initial_capital=1000000):
         """
         :param analytics:
         :param events: (Queue)
@@ -19,7 +18,7 @@ class StockBacktest(Backtest):
         """
         assert isinstance(data, StockBacktestDataHandler)
         assert isinstance(execution, StockBacktestExecutionHandler)
-        super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date)
+        super(StockBacktest, self).__init__(events, strategy, data, execution, start_date, end_date, analytics)
         self.initial_capital = initial_capital
 
     def event_handler(self):

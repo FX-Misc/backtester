@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 
 class Backtest(object):
 
-    def __init__(self, events, strategy, data, execution, start_date, end_date):
+    def __init__(self, events, strategy, data, execution, start_date, end_date, analytics=None):
         """
         Backtest base.
         """
@@ -13,6 +13,7 @@ class Backtest(object):
         self.strategy = strategy
         self.data = data
         self.execution = execution
+        self.analytics = analytics
         self.start_date = start_date
         self.end_date = end_date
         self.continue_backtest = True
@@ -36,6 +37,9 @@ class Backtest(object):
         self._log_backtest_info()
         event_handler_thread = threading.Thread(target=self.event_handler, args=())
         event_handler_thread.start()
+
+    def finished(self):
+        self.analytics.run()
 
     @abstractmethod
     def event_handler(self):

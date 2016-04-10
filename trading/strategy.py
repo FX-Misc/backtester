@@ -33,7 +33,6 @@ class Strategy(object):
         self.logger.addHandler(fileHandler)
         self.logger.propagate = False
 
-
     def order(self, symbol, quantity, price=None, type='MARKET'):
         """
         Generate an order and place it into events.
@@ -54,14 +53,16 @@ class Strategy(object):
         """
         self.curr_time = market_event.datetime
 
-    @abstractmethod
-    def update_price_series(self):
-        raise NotImplementedError('Strategy.update_price_series()')
+    # @abstractmethod
+    # def update_price_series(self):
+    #     raise NotImplementedError('Strategy.update_price_series()')
+    #
+    # @abstractmethod
+    # def update_positions_series(self):
+    #     raise NotImplementedError('Strategy.update_positions_series()')
+
 
     def update_positions(self, fill_event):
-        """
-
-        """
         self.positions['dt'] = fill_event.fill_time.strftime("%y/%m/%e-%H:%M:%S.%f")
         if fill_event.symbol not in self.positions:
             self.positions[fill_event.symbol] = 0
@@ -112,3 +113,12 @@ class Strategy(object):
     #     :return:
     #     """
     #     raise NotImplementedError("new_day()")
+
+class FuturesStrategy(Strategy):
+    def __init__(self, events, data):
+        super(FuturesStrategy, self).__init__(events, data)
+
+class StockStrategy(Strategy):
+    def __init__(self, events, data):
+        super(StockStrategy, self).__init__(events, data)
+
