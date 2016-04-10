@@ -31,8 +31,8 @@ class BuyStrategy(Strategy):
         self.curr_dt = market_event.dt
         self.latest_data = self.data.get_latest()
 
-        aapl_order_qty = 100
-        msft_order_qty = 500
+        aapl_order_qty = 1
+        msft_order_qty = 10
         temp_capital = self.capital
         if self._check_order(temp_capital, self.sym1, aapl_order_qty):
             self.order(self.sym1, aapl_order_qty)
@@ -57,16 +57,16 @@ class BuyStrategy(Strategy):
         self.cash_series[fill_event.fill_time] = self.capital
 
     def finished(self):
-        pass
-        # symbols = ['AAPL', 'MSFT']
-        # all_data = self.data.all_symbol_data
-        # results = pd.DataFrame(data=self.positions_series.values(), index=self.positions_series.keys())
-        # results['cash'] = self.cash_series.values()
-        # results['position_value'] = all_data['AAPL']['Open']*results['AAPL']
-        # results['value'] = results['cash'] + results['position_value']
-        # results['pnl'] = 100*results['value'].pct_change().fillna(0)
-        # results['pnl_total'] = 1-results['value']/self.initial_capital
-        # print tabulate.tabulate(results, headers='keys', tablefmt='pipe')
+        symbols = ['AAPL', 'MSFT']
+        all_data = self.data.all_symbol_data
+        results = pd.DataFrame(data=self.positions_series.values(), index=self.positions_series.keys())
+        results['cash'] = self.cash_series.values()
+        results['AAPL_mkt'] = all_data['AAPL']['Open']
+        results['AAPL_value'] = results['AAPL_mkt']*results['AAPL']
+        results['value'] = results['cash'] + results['AAPL_value']
+        results['pnl'] = 100*results['value'].pct_change().fillna(0)
+        results['pnl_total'] = 1-results['value']/self.initial_capital
+        return results
 
     def order(self, symbol, quantity, order_type='MARKET', price=None,):
         order = OrderEvent(self.curr_dt, symbol, quantity, order_type, price)

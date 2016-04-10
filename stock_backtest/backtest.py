@@ -31,8 +31,8 @@ class StockBacktest(Backtest):
                 self.data.update()
             else:
                 self.strategy.finished()
+                self.continue_backtest = False
                 break
-            # Handle events
             while True:
                 try:
                     event = self.events.get(False)

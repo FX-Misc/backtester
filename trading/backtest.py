@@ -21,15 +21,11 @@ class Backtest(object):
         logFormatter = logging.Formatter("%(asctime)s %(message)s")
         fileHandler = logging.FileHandler('output/backtest_log', mode='w')
         fileHandler.setFormatter(logFormatter)
-        logging.basicConfig(filemode='w',
-                            format=' %(message)s',
+        logging.basicConfig(format=' %(message)s',
                             datefmt='%H:%M:%S',
                             level=logging.DEBUG)
-        logging.getLogger().addHandler(logging.StreamHandler())
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setFormatter(logFormatter)
         self.logger.addHandler(fileHandler)
-        self.logger.addHandler(consoleHandler)
+        self.logger.propagate = False
 
     __metaclass__ = ABCMeta
 

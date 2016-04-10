@@ -5,3 +5,6 @@ def parse_orders():
 
 def parse_fills():
     pass
+
+def calculate_pnl():
+    pass

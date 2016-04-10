@@ -16,7 +16,9 @@ class Strategy(object):
         self.events = events
         self.curr_time = None
         self.positions = {}
+        self.realized_pnl = 0
         # self.initialize(*args, **kwargs)
+
         logFormatter = logging.Formatter("%(asctime)s %(message)s")
         fileHandler = logging.FileHandler('output/strategy_log', mode='w')
         fileHandler.setFormatter(logFormatter)
@@ -25,6 +27,7 @@ class Strategy(object):
                             datefmt='%H:%M:%S',
                             level=logging.INFO)
         self.logger.addHandler(fileHandler)
+        self.logger.propagate = False
 
 
     def order(self, symbol, quantity, price=None, type='MARKET'):
