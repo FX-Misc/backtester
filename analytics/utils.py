@@ -87,6 +87,7 @@ def percentage(x, pos):
     """
     Adds percentage sign to plot ticks.
     """
+    print type(x), type(pos)
 
     return '%.0f%%' % x
 

@@ -19,14 +19,8 @@ def plotting_context(func):
             return func(*args, **kwargs)
     return call_w_context
 
-def plot_rolling_returns(returns,
-                         factor_returns=None,
-                         live_start_date=None,
-                         cone_std=None,
-                         legend_loc='best',
-                         volatility_match=False,
-                         cone_function=timeseries.forecast_cone_bootstrap,
-                         ax=None, **kwargs):
+def plot_rolling_returns(returns, factor_returns=None, live_start_date=None, cone_std=None, legend_loc='best',
+                         volatility_match=False, cone_function=timeseries.forecast_cone_bootstrap, ax=None, **kwargs):
     """
     Plots cumulative rolling returns versus some benchmarks'.
 
@@ -82,6 +76,12 @@ def plot_rolling_returns(returns,
     ax.set_ylabel('Cumulative returns')
     ax.set_xlabel('')
 
+    benchmark_rets = utils.get_symbol_rets('SPY')
+    benchmark_rets.index = pd.DatetimeIndex([i.replace(tzinfo=None) for i in benchmark_rets.index])
+    # If the strategy's history is longer than the benchmark's, limit the strategy
+    if returns.index[0] < benchmark_rets.index[0]:
+        returns = returns[returns.index > benchmark_rets.index[0]]
+
     if volatility_match and factor_returns is None:
         raise ValueError('volatility_match requires passing of'
                          'factor_returns.')
@@ -90,17 +90,15 @@ def plot_rolling_returns(returns,
         returns = (returns / returns.std()) * bmark_vol
 
     cum_rets = timeseries.cum_returns(returns, 1.0)
+    # y_axis_formatter = FuncFormatter(utils.percentage)
+    # ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
 
-    y_axis_formatter = FuncFormatter(utils.one_dec_places)
-    ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
-
-    if factor_returns is not None:
-        cum_factor_returns = timeseries.cum_returns(
-            factor_returns[cum_rets.index], 1.0)
-        cum_factor_returns.plot(lw=2, color='gray',
-                                label=factor_returns.name, alpha=0.60,
-                                ax=ax, **kwargs)
-
+    if factor_returns is None:
+        factor_returns = benchmark_rets
+    # if factor_returns is not None:
+    cum_factor_returns = timeseries.cum_returns(factor_returns[cum_rets.index], 1.0)
+    cum_factor_returns.plot(lw=2, color='gray',label=factor_returns.name, alpha=0.60,
+                            ax=ax, **kwargs)
     if live_start_date is not None:
         live_start_date = utils.get_utc_timestamp(live_start_date)
         is_cum_returns = cum_rets.loc[cum_rets.index < live_start_date]
@@ -108,37 +106,27 @@ def plot_rolling_returns(returns,
     else:
         is_cum_returns = cum_rets
         oos_cum_returns = pd.Series([])
-
-    is_cum_returns.plot(lw=3, color='forestgreen', alpha=0.6,
-                        label='Backtest', ax=ax, **kwargs)
-
+    is_cum_returns.plot(lw=3, color='forestgreen', alpha=0.6, label='Backtest', ax=ax, **kwargs)
     if len(oos_cum_returns) > 0:
-        oos_cum_returns.plot(lw=4, color='red', alpha=0.6,
-                             label='Live', ax=ax, **kwargs)
-
+        oos_cum_returns.plot(lw=4, color='red', alpha=0.6, label='Live', ax=ax, **kwargs)
         if cone_std is not None:
             if isinstance(cone_std, (float, int)):
                 cone_std = [cone_std]
-
             is_returns = returns.loc[returns.index < live_start_date]
             cone_bounds = cone_function(
                 is_returns,
                 len(oos_cum_returns),
                 cone_std=cone_std,
                 starting_value=is_cum_returns[-1])
-
             cone_bounds = cone_bounds.set_index(oos_cum_returns.index)
-
             for std in cone_std:
                 ax.fill_between(cone_bounds.index,
                                 cone_bounds[float(std)],
                                 cone_bounds[float(-std)],
                                 color='steelblue', alpha=0.5)
-
     if legend_loc is not None:
         ax.legend(loc=legend_loc)
     ax.axhline(1.0, linestyle='--', color='black', lw=2)
-
     return ax
 
 def plot_holdings(returns, positions, legend_loc='best', ax=None, **kwargs):

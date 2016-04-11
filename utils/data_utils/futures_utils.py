@@ -102,6 +102,7 @@ def get_highest_volume_contract(symbol, year, month, day):
 
     return highest_volume_contract
 
+
 def get_contract_specs(symbol):
     """
 

@@ -33,6 +33,7 @@ class StockBacktest(Backtest):
             else:
                 self.strategy.finished()
                 self.continue_backtest = False
+                # self.finished()
                 break
             while True:
                 try:
@@ -44,6 +45,7 @@ class StockBacktest(Backtest):
                         event_handlers[event.type](event)
 
     def _handle_market_event(self, market_event):
+        self.strategy.new_tick_update(market_event)
         self.strategy.new_tick(market_event)
         self.execution.process_resting_orders(market_event)
 
@@ -52,7 +54,7 @@ class StockBacktest(Backtest):
         self.logger.info(json.dumps(order_event.info()))
 
     def _handle_fill_event(self, fill_event):
+        self.strategy.new_fill_update(fill_event)
         self.strategy.new_fill(fill_event)
         self.logger.info(json.dumps(fill_event.info()))
-        self.strategy.update_positions(fill_event)
 

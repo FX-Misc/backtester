@@ -95,17 +95,17 @@ def create_returns_tear_sheet(returns, live_start_date=None,
     ax_rolling_returns.set_title(
         'Cumulative Returns')
 
-    # plotting.plot_rolling_returns(
-    #     returns,
-    #     factor_returns=benchmark_rets,
-    #     live_start_date=live_start_date,
-    #     cone_std=None,
-    #     volatility_match=True,
-    #     legend_loc=None,
-    #     ax=ax_rolling_returns_vol_match)
-    # ax_rolling_returns_vol_match.set_title(
-    #     'Cumulative returns volatility matched to benchmark.')
-    #
+    plotting.plot_rolling_returns(
+        returns,
+        factor_returns=benchmark_rets,
+        live_start_date=live_start_date,
+        cone_std=None,
+        volatility_match=True,
+        legend_loc=None,
+        ax=ax_rolling_returns_vol_match)
+    ax_rolling_returns_vol_match.set_title(
+        'Cumulative returns volatility matched to benchmark.')
+
     # plotting.plot_rolling_beta(
     #     returns, benchmark_rets, ax=ax_rolling_beta)
     #

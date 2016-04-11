@@ -20,7 +20,7 @@ class DataHandler(object):
         self.events = events
 
     @abstractmethod
-    def get_latest(self):
+    def get_latest(self, n=1):
         """
         Returns the last N bars from the latest_data list, or fewer if less bars are available.
         :return: (DataFrame)

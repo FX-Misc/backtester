@@ -33,8 +33,10 @@ class CMEBacktest(Backtest):
                         event_handlers[event.type](event)
 
     def _handle_market_event(self, market_event):
+        self.strategy.curr_dt = market_event.dt
         self.strategy.new_tick(market_event)
         self.execution.process_resting_orders(market_event)
+
 
     def _handle_order_event(self, order_event):
         self.execution.process_order(order_event)
@@ -43,4 +45,4 @@ class CMEBacktest(Backtest):
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill(fill_event)
         self.logger.info(json.dumps(fill_event.info()))
-        self.strategy.update_positions(fill_event)
+        self.strategy._update_positions(fill_event)

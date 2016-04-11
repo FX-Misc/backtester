@@ -19,7 +19,7 @@ class StockBacktestDataHandler(BacktestDataHandler):
         self.curr_dt = start_date
         self.continue_backtest = True
 
-    def get_latest(self):
+    def get_latest(self, n=1):
         """
         Get the latest data (called from a Strategy)
         :return: (Series)

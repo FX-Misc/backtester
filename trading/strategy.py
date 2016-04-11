@@ -1,7 +1,9 @@
 import json
 import logging
+import numpy as np
+import pandas as pd
+from collections import OrderedDict
 from abc import ABCMeta, abstractmethod
-
 
 class Strategy(object):
     """
@@ -10,19 +12,25 @@ class Strategy(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, events, data, *args, **kwargs):
+    def __init__(self, events, data, products, initial_cash, *args, **kwargs):
 
-        self.data = data
         self.events = events
-        self.curr_time = None
-        self.positions = {}
+        self.data = data
+        self.products = products
+
+        self.curr_dt = None
+        self.positions = OrderedDict()
+        self.initial_cash = initial_cash
+        self.cash = initial_cash
         self.curr_pnl = 0
+        self.last_bar = None
 
-        # self.positions_series =
-        # self.price_series = {sym: [] for sym in self.symbols}
-
+        mkt_price_columns = [product.symbol+'_mkt' for product in self.products]
+        position_columns = [product.symbol+'_pos' for product in self.products]
+        columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
+        self.time_series = pd.DataFrame(data=None, columns=columns)
+        self.transactions = {product.symbol: [] for product in self.products}
         # self.initialize(*args, **kwargs)
-
         logFormatter = logging.Formatter("%(asctime)s %(message)s")
         fileHandler = logging.FileHandler('output/strategy_log', mode='w')
         fileHandler.setFormatter(logFormatter)
@@ -45,42 +53,25 @@ class Strategy(object):
         raise NotImplementedError('Strategy.order()')
 
     @abstractmethod
+    def new_tick_update(self, market_event):
+        raise NotImplementedError('Strategy.new_tick_update()')
+
+    @abstractmethod
     def new_tick(self, market_event):
         """
         Call back for when the strategy receives a new tick.
         :param event: (MarketEvent)
         :return:
         """
-        self.curr_time = market_event.datetime
+        raise NotImplementedError('Strategy.new_tick()')
 
-    # @abstractmethod
-    # def update_price_series(self):
-    #     raise NotImplementedError('Strategy.update_price_series()')
-    #
-    # @abstractmethod
-    # def update_positions_series(self):
-    #     raise NotImplementedError('Strategy.update_positions_series()')
-
-
-    def update_positions(self, fill_event):
-        self.positions['dt'] = fill_event.fill_time.strftime("%y/%m/%e-%H:%M:%S.%f")
-        if fill_event.symbol not in self.positions:
-            self.positions[fill_event.symbol] = 0
+    def new_fill_update(self, fill_event):
+        """
+        Updates positions.
+        :param fill_event: (FillEvent)
+        """
         self.positions[fill_event.symbol] += fill_event.quantity
-        self.logger.info(json.dumps(self.positions.copy()))
-
-
-    # def update_metrics(self):
-    #     last_bar = self.bars.get_latest_bars(n=1)
-    #     pnl_ = self.cash + sum([self.pos[sym] * self.contract_multiplier[sym] *
-    #                             (last_bar['level_1_price_buy']
-    #                              if self.pos[sym] < 0 else
-    #                              last_bar['level_1_price_sell']) for sym in self.symbols])
-    #     self.pnl.append(pnl_)
-    #     self.time_series.append(self.cur_time)
-    #     for sym in self.symbols:
-    #         self.price_series[sym].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
-    #         self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
+        self.cash -= fill_event.fill_cost
 
     @abstractmethod
     def new_fill(self, fill_event):
@@ -115,10 +106,46 @@ class Strategy(object):
     #     raise NotImplementedError("new_day()")
 
 class FuturesStrategy(Strategy):
-    def __init__(self, events, data):
-        super(FuturesStrategy, self).__init__(events, data)
+    def __init__(self, events, data, products, initial_cash=0, continuous=True):
+        super(FuturesStrategy, self).__init__(events, data, products)
+
+    def new_tick_update(self, market_event):
+        """
+        Update:
+            - price_series (last_bar)
+            - returns (series of decimal of cumulative PnL)
+            - transactions (basically the fills)
+            - positions series
+        """
+        self.last_bar = self.data.get_latest(n=1)
+        for product in self.products:
+            # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
+            mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
+            pnl_ = self.cash + sum([self.positions[product.symbol] * product.tick_value * (self.last_bar[product.symbol]['level_1_price_buy']
+                                    if self.positions[product.symbol] < 0
+                                    else self.last_bar['level_1_price_sell']) for product.symbol in self.products])
+            # self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
+
+    def finished(self):
+        pass
 
 class StockStrategy(Strategy):
-    def __init__(self, events, data):
-        super(StockStrategy, self).__init__(events, data)
+    def __init__(self, events, data, products, initial_cash=1000000, price_field='Open'):
+        super(StockStrategy, self).__init__(events, data, products, initial_cash)
+        self.price_field = price_field
 
+    def new_tick_update(self, market_event):
+        self.curr_dt = market_event.dt
+        self.last_bar = self.data.get_latest(n=1)
+        mkt_prices = [self.last_bar[product.symbol][self.price_field] for product in self.products]
+        _positions = [self.positions[product.symbol] for product in self.products]
+        self.time_series.loc[len(self.time_series)] = [self.curr_dt] + mkt_prices + _positions + [self.cash]
+
+    def finished(self):
+        for product in self.products:
+            self.time_series[product.symbol+'_val'] = self.time_series[product.symbol+'_pos']*\
+                                                      self.time_series[product.symbol+'_mkt']
+        self.time_series['val'] = np.sum(self.time_series[product.symbol+'_val'] for product in self.products) \
+                                  + self.time_series['cash']
+        self.time_series['cum_returns'] = (self.time_series['val'] - self.initial_cash)/self.initial_cash
+        self.time_series.set_index('dt', inplace=True)
