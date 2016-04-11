@@ -16,42 +16,36 @@ from analytics.plotting import plot_holdings
 
 def run():
     events = Queue()
-    products = [Stock('AAPL'), Stock('MSFT')]
+    products = [Stock('XOM'), Stock('GE')]
     symbols = [product.symbol for product in products]
     start_date = dt.datetime(year=2012, month=1, day=1)
-    end_date = dt.datetime(year=2016, month=1, day=10)
+    end_date = dt.datetime(year=2013    , month=1, day=10)
     data = StockBacktestDataHandler(events, symbols, start_date, end_date)
     execution = StockBacktestExecutionHandler(events)
     strategy = BuyStrategy(events, data, products, initial_cash=100000)
     backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
     backtest.run()
     while(1):
+        plt.ioff()
         if(not backtest.continue_backtest):
-            print tabulate.tabulate(strategy.time_series, headers='keys', tablefmt='pipe')
-            # returns = results['returns']
+            # print tabulate.tabulate(strategy.time_series, headers='keys', tablefmt='pipe')
             # holdings_fig = plt.figure()
             # for i in range(len(symbols)):
             #     symbol = symbols[i]
-            #     positions = pd.DataFrame(data=np.array([results[symbol], results['cash']]).transpose(),
-            #                              index=results.index,
+            #     positions = pd.DataFrame(data=np.array([strategy.time_series[symbol+'_val'], strategy.time_series['cash']]).transpose(),
+            #                              index=strategy.time_series.index,
             #                              columns=[symbol, 'cash'])
             #     ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
-            #     plot_holdings(returns, positions, ax=ax)
-            # rolling_returns = fig.add_subplot(1,1,1)
-            # plot.plot_rolling_returns(strategy.time_series['returns'], ax=rolling_returns)
-            # plt.show()
-            tears.create_returns_tear_sheet(strategy.time_series['returns'])
+            #     plot_holdings(strategy.time_series['returns'], positions, ax=ax)
+            positions_cols = [product.symbol+'_val' for product in products] + ['cash']
+            positions = pd.DataFrame(np.array([strategy.time_series[product.symbol+'_val'] for product in products]
+                                     + [strategy.time_series['cash']]).transpose(), columns=positions_cols,
+                                     index=strategy.time_series.index)
+            positions_tear = tears.create_position_tear_sheet(strategy.time_series['returns'], positions, return_fig=True)
+            returns_tear = tears.create_returns_tear_sheet(strategy.time_series['returns'], return_fig=True)
+            positions_tear.savefig('positions.png', dpi=800)
+            returns_tear.savefig('returns.png', dpi=800)
             break
-
-def plot_all_holdings(symbols):
-    holdings_fig = plt.figure()
-    for i in range(len(symbols)):
-        symbol = symbols[i]
-        positions = pd.DataFrame(data=np.array([results[symbol], results['cash']]).transpose(),
-                                 index=results.index,
-                                 columns=[symbol, 'cash'])
-        ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
-        plot_holdings(returns, positions, ax=ax)
 
 if __name__ == "__main__":
     run()

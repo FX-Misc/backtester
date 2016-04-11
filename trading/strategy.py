@@ -19,7 +19,7 @@ class Strategy(object):
         self.products = products
 
         self.curr_dt = None
-        self.positions = OrderedDict()
+        self.positions = {product.symbol: 0 for product in self.products}
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.curr_pnl = 0
@@ -149,4 +149,3 @@ class StockStrategy(Strategy):
                                   + self.time_series['cash']
         self.time_series['returns'] = self.time_series['val'].pct_change().fillna(0)
         self.time_series.set_index('dt', inplace=True)
-        self.time_series.fillna(0)

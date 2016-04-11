@@ -1,5 +1,7 @@
+import pos
 import utils
 import timeseries
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -92,7 +94,7 @@ def plot_rolling_returns(returns, factor_returns=None, live_start_date=None, con
         returns = (returns / returns.std()) * bmark_vol
 
     cum_rets = timeseries.cum_returns(returns, 1.0)
-    # y_axis_formatter = FuncFormatter(utils.percentage)
+    y_axis_formatter = FuncFormatter(utils.percentage)
     # ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
 
     if factor_returns is None:
@@ -298,6 +300,312 @@ def plot_rolling_sharpe(returns, rolling_window=APPROX_BDAYS_PER_MONTH * 6, lege
     ax.set_xlabel('')
     ax.legend(['Sharpe', 'Average'],
               loc=legend_loc)
+    return ax
+
+
+def plot_drawdown_periods(returns, top=10, ax=None, **kwargs):
+    """
+    Plots cumulative returns highlighting top drawdown periods.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    top : int, optional
+        Amount of top drawdowns periods to plot (default 10).
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    y_axis_formatter = FuncFormatter(utils.one_dec_places)
+    ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
+
+    df_cum_rets = timeseries.cum_returns(returns, starting_value=1.0)
+    df_drawdowns = timeseries.gen_drawdown_table(returns, top=top)
+
+    df_cum_rets.plot(ax=ax, **kwargs)
+
+    lim = ax.get_ylim()
+    colors = sns.cubehelix_palette(len(df_drawdowns))[::-1]
+    for i, (peak, recovery) in df_drawdowns[
+            ['peak date', 'recovery date']].iterrows():
+        if pd.isnull(recovery):
+            recovery = returns.index[-1]
+        ax.fill_between((peak, recovery),
+                        lim[0],
+                        lim[1],
+                        alpha=.4,
+                        color=colors[i])
+
+    ax.set_title('Top %i Drawdown Periods' % top)
+    ax.set_ylabel('Cumulative returns')
+    ax.legend(['Portfolio'], loc='upper left')
+    ax.set_xlabel('')
+    return ax
+
+
+def plot_drawdown_underwater(returns, ax=None, **kwargs):
+    """Plots how far underwaterr returns are over time, or plots current
+    drawdown vs. date.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    y_axis_formatter = FuncFormatter(utils.percentage)
+    ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
+
+    df_cum_rets = timeseries.cum_returns(returns, starting_value=1.0)
+    running_max = np.maximum.accumulate(df_cum_rets)
+    underwater = -100 * ((running_max - df_cum_rets) / running_max)
+    (underwater).plot(ax=ax, kind='area', color='coral', alpha=0.7, **kwargs)
+    ax.set_ylabel('Drawdown')
+    ax.set_title('Underwater Plot')
+    ax.set_xlabel('')
+    return ax
+
+
+def show_worst_drawdown_periods(returns, top=5):
+    """Prints information about the worst drawdown periods.
+
+    Prints peak dates, valley dates, recovery dates, and net
+    drawdowns.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    top : int, optional
+        Amount of top drawdowns periods to plot (default 5).
+
+    """
+
+    drawdown_df = timeseries.gen_drawdown_table(returns, top=top)
+    utils.print_table(drawdown_df.sort('net drawdown in %', ascending=False),
+                      name='Worst Drawdown Periods', fmt='{0:.2f}')
+
+
+def plot_gross_leverage(returns, gross_lev, ax=None, **kwargs):
+    """Plots gross leverage versus date.
+
+    Gross leverage is the sum of long and short exposure per share
+    divided by net asset value.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    gross_lev : pd.Series, optional
+        The leverage of a strategy.
+         - See full explanation in tears.create_full_tear_sheet.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+
+"""
+
+    if ax is None:
+        ax = plt.gca()
+
+    gross_lev.plot(alpha=0.8, lw=0.5, color='g', legend=False, ax=ax,
+                   **kwargs)
+
+    ax.axhline(gross_lev.mean(), color='g', linestyle='--', lw=3,
+               alpha=1.0)
+
+    ax.set_title('Gross Leverage')
+    ax.set_ylabel('Gross Leverage')
+    ax.set_xlabel('')
+    return ax
+
+
+def plot_exposures(returns, positions_alloc, ax=None, **kwargs):
+    """Plots a cake chart of the long and short exposure.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    positions_alloc : pd.DataFrame
+        Portfolio allocation of positions. See
+        pos.get_percent_alloc.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    df_long_short = pos.get_long_short_pos(positions_alloc)
+
+    df_long_short.plot(
+        kind='area', color=['lightblue', 'green'], alpha=1.0,
+        ax=ax, **kwargs)
+    df_cum_rets = timeseries.cum_returns(returns, starting_value=1)
+    ax.set_xlim((df_cum_rets.index[0], df_cum_rets.index[-1]))
+    ax.set_title("Long/Short Exposure")
+    ax.set_ylabel('Exposure')
+    ax.set_xlabel('')
+    return ax
+
+
+def show_and_plot_top_positions(returns, positions_alloc,show_and_plot=2, hide_positions=False, legend_loc='real_best',
+                                ax=None, **kwargs):
+    """Prints and/or plots the exposures of the top 10 held positions of
+    all time.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    positions_alloc : pd.DataFrame
+        Portfolio allocation of positions. See pos.get_percent_alloc.
+    show_and_plot : int, optional
+        By default, this is 2, and both prints and plots.
+        If this is 0, it will only plot; if 1, it will only print.
+    hide_positions : bool, optional
+        If True, will not output any symbol names.
+    legend_loc : matplotlib.loc, optional
+        The location of the legend on the plot.
+        By default, the legend will display below the plot.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes, conditional
+        The axes that were plotted on.
+
+    """
+
+    df_top_long, df_top_short, df_top_abs = pos.get_top_long_short_abs(
+        positions_alloc)
+
+    if show_and_plot == 1 or show_and_plot == 2:
+        utils.print_table(pd.DataFrame(df_top_long * 100, columns=['max']),
+                          fmt='{0:.2f}%',
+                          name='Top 10 long positions of all time')
+
+        utils.print_table(pd.DataFrame(df_top_short * 100, columns=['max']),
+                          fmt='{0:.2f}%',
+                          name='Top 10 short positions of all time')
+
+        utils.print_table(pd.DataFrame(df_top_abs * 100, columns=['max']),
+                          fmt='{0:.2f}%',
+                          name='Top 10 positions of all time')
+
+        _, _, df_top_abs_all = pos.get_top_long_short_abs(
+            positions_alloc, top=9999)
+        utils.print_table(pd.DataFrame(df_top_abs_all * 100, columns=['max']),
+                          fmt='{0:.2f}%',
+                          name='All positions ever held')
+
+    if show_and_plot == 0 or show_and_plot == 2:
+
+        if ax is None:
+            ax = plt.gca()
+
+        positions_alloc[df_top_abs.index].plot(
+            title='Portfolio Allocation Over Time, Only Top 10 Holdings',
+            alpha=0.4, ax=ax, **kwargs)
+
+        # Place legend below plot, shrink plot by 20%
+        if legend_loc == 'real_best':
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                             box.width, box.height * 0.9])
+
+            # Put a legend below current axis
+            ax.legend(
+                loc='upper center', frameon=True, bbox_to_anchor=(
+                    0.5, -0.14), ncol=5)
+        else:
+            ax.legend(loc=legend_loc)
+
+        df_cum_rets = timeseries.cum_returns(returns, starting_value=1)
+        ax.set_xlim((df_cum_rets.index[0], df_cum_rets.index[-1]))
+        ax.set_ylabel('Exposure by stock')
+
+        if hide_positions:
+            ax.legend_.remove()
+
+        return ax
+
+
+def plot_max_median_position_concentration(positions, ax=None, **kwargs):
+    """
+    Plots the max and median of long and short position concentrations
+    over the time.
+
+    Parameters
+    ----------
+    positions : pd.DataFrame
+        The positions that the strategy takes over time.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+    """
+    if ax is None:
+        ax = plt.gcf()
+
+    alloc_summary = pos.get_max_median_position_concentration(positions)
+    colors = ['mediumblue', 'steelblue', 'tomato', 'firebrick']
+    alloc_summary.plot(linewidth=1, color=colors, alpha=0.6, ax=ax)
+
+    ax.legend(loc='center left')
+    ax.set_ylabel('Exposure')
+    ax.set_title('Long/Short Max and Median Position Concentration')
+
     return ax
 
 

@@ -10,14 +10,8 @@ class BuyStrategy(StockStrategy):
         super(BuyStrategy, self).__init__(events, data, products, initial_cash)
         self.curr_dt = None
 
-        self.sym1 = 'AAPL'
-        self.sym2 = 'MSFT'
-
-        self.positions = {'AAPL': 0,
-                          'MSFT': 0
-                          }
-
-
+        self.sym1 = products[0].symbol
+        self.sym2 = products[1].symbol
         self.fills = []
         self.positions_series = OrderedDict()
         self.cash_series = OrderedDict()
