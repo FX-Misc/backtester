@@ -11,7 +11,7 @@ class BuyStrategy(StockStrategy):
         self.curr_dt = None
 
         self.sym1 = products[0].symbol
-        self.sym2 = products[1].symbol
+        # self.sym2 = products[1].symbol
         self.fills = []
         self.positions_series = OrderedDict()
         self.cash_series = OrderedDict()
