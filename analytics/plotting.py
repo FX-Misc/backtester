@@ -5,6 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from functools import wraps
+from collections import OrderedDict
 from .utils import APPROX_BDAYS_PER_MONTH
 
 def plotting_context(func):
@@ -18,6 +19,7 @@ def plotting_context(func):
         else:
             return func(*args, **kwargs)
     return call_w_context
+
 
 def plot_rolling_returns(returns, factor_returns=None, live_start_date=None, cone_std=None, legend_loc='best',
                          volatility_match=False, cone_function=timeseries.forecast_cone_bootstrap, ax=None, **kwargs):
@@ -197,8 +199,109 @@ def plot_holdings(returns, positions, legend_loc='best', ax=None, **kwargs):
     ax.set_xlabel('')
     return ax
 
-def show_perf_stats(returns, factor_returns, live_start_date=None,
-                    bootstrap=False):
+
+def plot_rolling_beta(returns, factor_returns, legend_loc='best', ax=None, **kwargs):
+    """
+    Plots the rolling 6-month and 12-month beta versus date.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    factor_returns : pd.Series, optional
+        Daily noncumulative returns of the benchmark.
+         - This is in the same style as returns.
+    legend_loc : matplotlib.loc, optional
+        The location of the legend on the plot.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    y_axis_formatter = FuncFormatter(utils.one_dec_places)
+    ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
+
+    ax.set_title("Rolling Portfolio Beta to " + str(factor_returns.name))
+    ax.set_ylabel('Beta')
+    rb_1 = timeseries.rolling_beta(
+        returns, factor_returns, rolling_window=APPROX_BDAYS_PER_MONTH * 6)
+    rb_1.plot(color='steelblue', lw=3, alpha=0.6, ax=ax, **kwargs)
+    rb_2 = timeseries.rolling_beta(
+        returns, factor_returns, rolling_window=APPROX_BDAYS_PER_MONTH * 12)
+    rb_2.plot(color='grey', lw=3, alpha=0.4, ax=ax, **kwargs)
+    ax.set_ylim((-2.5, 2.5))
+    ax.axhline(rb_1.mean(), color='steelblue', linestyle='--', lw=3)
+    ax.axhline(0.0, color='black', linestyle='-', lw=2)
+
+    ax.set_xlabel('')
+    ax.legend(['6-mo',
+               '12-mo'],
+              loc=legend_loc)
+    return ax
+
+
+def plot_rolling_sharpe(returns, rolling_window=APPROX_BDAYS_PER_MONTH * 6, legend_loc='best', ax=None, **kwargs):
+    """
+    Plots the rolling Sharpe ratio versus date.
+
+    Parameters
+    ----------
+    returns : pd.Series
+        Daily returns of the strategy, noncumulative.
+         - See full explanation in tears.create_full_tear_sheet.
+    rolling_window : int, optional
+        The days window over which to compute the sharpe ratio.
+    legend_loc : matplotlib.loc, optional
+        The location of the legend on the plot.
+    ax : matplotlib.Axes, optional
+        Axes upon which to plot.
+    **kwargs, optional
+        Passed to plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.Axes
+        The axes that were plotted on.
+    """
+
+    if ax is None:
+        ax = plt.gca()
+
+    y_axis_formatter = FuncFormatter(utils.one_dec_places)
+    ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
+
+    rolling_sharpe_ts = timeseries.rolling_sharpe(
+        returns, rolling_window)
+    rolling_sharpe_ts.plot(alpha=.7, lw=3, color='orangered', ax=ax,
+                           **kwargs)
+
+    ax.set_title('Rolling Sharpe ratio (6-month)')
+    ax.axhline(
+        rolling_sharpe_ts.mean(),
+        color='steelblue',
+        linestyle='--',
+        lw=3)
+    ax.axhline(0.0, color='black', linestyle='-', lw=3)
+
+    ax.set_ylim((-3.0, 6.0))
+    ax.set_ylabel('Sharpe ratio')
+    ax.set_xlabel('')
+    ax.legend(['Sharpe', 'Average'],
+              loc=legend_loc)
+    return ax
+
+
+def show_perf_stats(returns, factor_returns, live_start_date=None, bootstrap=False):
     """Prints some performance metrics of the strategy.
 
     - Shows amount of time the strategy has been run in backtest and
@@ -266,6 +369,7 @@ def show_perf_stats(returns, factor_returns, live_start_date=None,
 
     utils.print_table(perf_stats, name='Performance statistics',
                       fmt='{0:.2f}')
+
 
 def context(context='notebook', font_scale=1.5, rc=None):
     """Create pyfolio default plotting style context.

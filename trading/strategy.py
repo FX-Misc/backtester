@@ -147,5 +147,6 @@ class StockStrategy(Strategy):
                                                       self.time_series[product.symbol+'_mkt']
         self.time_series['val'] = np.sum(self.time_series[product.symbol+'_val'] for product in self.products) \
                                   + self.time_series['cash']
-        self.time_series['cum_returns'] = (self.time_series['val'] - self.initial_cash)/self.initial_cash
+        self.time_series['returns'] = self.time_series['val'].pct_change().fillna(0)
         self.time_series.set_index('dt', inplace=True)
+        self.time_series.fillna(0)

@@ -1102,9 +1102,8 @@ def rolling_sharpe(returns, rolling_sharpe_window):
     See https://en.wikipedia.org/wiki/Sharpe_ratio for more details.
     """
 
-    return pd.rolling_mean(returns, rolling_sharpe_window) \
-        / pd.rolling_std(returns, rolling_sharpe_window) \
-        * np.sqrt(APPROX_BDAYS_PER_YEAR)
+    return pd.Series(pd.rolling_mean(returns, rolling_sharpe_window)/pd.rolling_std(returns, rolling_sharpe_window) \
+        * np.sqrt(APPROX_BDAYS_PER_YEAR)).std()
 
 
 def forecast_cone_bootstrap(is_returns, num_days, cone_std=(1., 1.5, 2.),

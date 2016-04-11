@@ -58,33 +58,29 @@ def create_returns_tear_sheet(returns, live_start_date=None,
     print("Entire data start date: " + str(df_cum_rets.index[0].strftime('%Y-%m-%d')))
     print("Entire data end date: " + str(df_cum_rets.index[-1].strftime('%Y-%m-%d')))
     print('\n')
-
     plotting.show_perf_stats(returns, benchmark_rets,
                              bootstrap=bootstrap,
                              live_start_date=live_start_date)
-
     if live_start_date is not None:
         vertical_sections = 11
         live_start_date = utils.get_utc_timestamp(live_start_date)
     else:
         vertical_sections = 10
-
     if bootstrap:
         vertical_sections += 1
-
-    fig = plt.figure(figsize=(14, vertical_sections * 6))
-    gs = gridspec.GridSpec(vertical_sections, 3, wspace=0.5, hspace=0.5)
+    fig = plt.figure()
+    gs = gridspec.GridSpec(5, 3, wspace=0.5, hspace=0.5)
     ax_rolling_returns = plt.subplot(gs[:2, :])
     ax_rolling_returns_vol_match = plt.subplot(gs[2, :], sharex=ax_rolling_returns)
     ax_rolling_beta = plt.subplot(gs[3, :], sharex=ax_rolling_returns)
     ax_rolling_sharpe = plt.subplot(gs[4, :], sharex=ax_rolling_returns)
-    ax_rolling_risk = plt.subplot(gs[5, :], sharex=ax_rolling_returns)
-    ax_drawdown = plt.subplot(gs[6, :], sharex=ax_rolling_returns)
-    ax_underwater = plt.subplot(gs[7, :], sharex=ax_rolling_returns)
-    ax_monthly_heatmap = plt.subplot(gs[8, 0])
-    ax_annual_returns = plt.subplot(gs[8, 1])
-    ax_monthly_dist = plt.subplot(gs[8, 2])
-    ax_return_quantiles = plt.subplot(gs[9, :])
+    # ax_rolling_risk = plt.subplot(gs[5, :], sharex=ax_rolling_returns)
+    # ax_drawdown = plt.subplot(gs[6, :], sharex=ax_rolling_returns)
+    # ax_underwater = plt.subplot(gs[7, :], sharex=ax_rolling_returns)
+    # ax_monthly_heatmap = plt.subplot(gs[8, 0])
+    # ax_annual_returns = plt.subplot(gs[8, 1])
+    # ax_monthly_dist = plt.subplot(gs[8, 2])
+    # ax_return_quantiles = plt.subplot(gs[9, :])
 
     plotting.plot_rolling_returns(
         returns,
@@ -106,12 +102,12 @@ def create_returns_tear_sheet(returns, live_start_date=None,
     ax_rolling_returns_vol_match.set_title(
         'Cumulative returns volatility matched to benchmark.')
 
-    # plotting.plot_rolling_beta(
-    #     returns, benchmark_rets, ax=ax_rolling_beta)
-    #
-    # plotting.plot_rolling_sharpe(
-    #     returns, ax=ax_rolling_sharpe)
-    #
+    plotting.plot_rolling_beta(
+        returns, benchmark_rets, ax=ax_rolling_beta)
+
+    plotting.plot_rolling_sharpe(
+        returns, ax=ax_rolling_sharpe)
+
     # plotting.plot_rolling_fama_french(
     #     returns, ax=ax_rolling_risk)
     #

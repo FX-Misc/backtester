@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
-import pyfolio.pyfolio.tears as tears
+import analytics.tears as tears
 from Queue import Queue
 from utils.stock import Stock
 from stock_backtest.data_handler import StockBacktestDataHandler
@@ -19,7 +19,7 @@ def run():
     products = [Stock('AAPL'), Stock('MSFT')]
     symbols = [product.symbol for product in products]
     start_date = dt.datetime(year=2012, month=1, day=1)
-    end_date = dt.datetime(year=2013, month=1, day=1)
+    end_date = dt.datetime(year=2016, month=1, day=10)
     data = StockBacktestDataHandler(events, symbols, start_date, end_date)
     execution = StockBacktestExecutionHandler(events)
     strategy = BuyStrategy(events, data, products, initial_cash=100000)
@@ -37,11 +37,10 @@ def run():
             #                              columns=[symbol, 'cash'])
             #     ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
             #     plot_holdings(returns, positions, ax=ax)
-
-            fig = plt.figure()
-            rolling_returns = fig.add_subplot(1,1,1)
-            plot.plot_rolling_returns(strategy.time_series['cum_returns'], ax=rolling_returns)
-            plt.show()
+            # rolling_returns = fig.add_subplot(1,1,1)
+            # plot.plot_rolling_returns(strategy.time_series['returns'], ax=rolling_returns)
+            # plt.show()
+            tears.create_returns_tear_sheet(strategy.time_series['returns'])
             break
 
 def plot_all_holdings(symbols):
