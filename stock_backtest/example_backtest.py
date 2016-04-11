@@ -24,28 +24,25 @@ def run():
     execution = StockBacktestExecutionHandler(events)
     strategy = BuyStrategy(events, data, products, initial_cash=100000)
     backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
-    backtest.run()
-    while(1):
-        plt.ioff()
-        if(not backtest.continue_backtest):
-            # print tabulate.tabulate(strategy.time_series, headers='keys', tablefmt='pipe')
-            # holdings_fig = plt.figure()
-            # for i in range(len(symbols)):
-            #     symbol = symbols[i]
-            #     positions = pd.DataFrame(data=np.array([strategy.time_series[symbol+'_val'], strategy.time_series['cash']]).transpose(),
-            #                              index=strategy.time_series.index,
-            #                              columns=[symbol, 'cash'])
-            #     ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
-            #     plot_holdings(strategy.time_series['returns'], positions, ax=ax)
-            positions_cols = [product.symbol+'_val' for product in products] + ['cash']
-            positions = pd.DataFrame(np.array([strategy.time_series[product.symbol+'_val'] for product in products]
-                                     + [strategy.time_series['cash']]).transpose(), columns=positions_cols,
-                                     index=strategy.time_series.index)
-            positions_tear = tears.create_position_tear_sheet(strategy.time_series['returns'], positions, return_fig=True)
-            returns_tear = tears.create_returns_tear_sheet(strategy.time_series['returns'], return_fig=True)
-            positions_tear.savefig('positions.png', dpi=800)
-            returns_tear.savefig('returns.png', dpi=800)
-            break
+    time_series = backtest.run()
+    # print tabulate.tabulate(strategy.time_series, headers='keys', tablefmt='pipe')
+    # holdings_fig = plt.figure()
+    # for i in range(len(symbols)):
+    #     symbol = symbols[i]
+    #     positions = pd.DataFrame(data=np.array([strategy.time_series[symbol+'_val'], strategy.time_series['cash']]).transpose(),
+    #                              index=strategy.time_series.index,
+    #                              columns=[symbol, 'cash'])
+    #     ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
+    #     plot_holdings(strategy.time_series['returns'], positions, ax=ax)
+    plt.ioff()
+    positions_cols = [product.symbol+'_val' for product in products] + ['cash']
+    positions = pd.DataFrame(np.array([strategy.time_series[product.symbol+'_val'] for product in products]
+                             + [strategy.time_series['cash']]).transpose(), columns=positions_cols,
+                             index=strategy.time_series.index)
+    # positions_tear = tears.create_position_tear_sheet(strategy.time_series['returns'], positions, return_fig=True)
+    returns_tear = tears.create_returns_tear_sheet(strategy.time_series['returns'], return_fig=True)
+    # positions_tear.savefig('positions.png', dpi=800)
+    returns_tear.savefig('returns.png', dpi=800)
 
 if __name__ == "__main__":
     run()

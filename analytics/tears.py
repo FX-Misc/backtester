@@ -60,7 +60,7 @@ def create_returns_tear_sheet(returns, live_start_date=None, cone_std=(1.0, 1.5,
     print('\n')
     plotting.show_perf_stats(returns, benchmark_rets, bootstrap=bootstrap, live_start_date=live_start_date)
     fig = plt.figure(figsize=(16, 12))
-    ax_rolling_returns = plt.subplot(4, 1, 1)
+    ax_rolling_returns = plt.subplot(4, 1, 1, label='small')
     ax_rolling_returns_vol_match = plt.subplot(4,1,2, sharex=ax_rolling_returns)
     ax_drawdown = plt.subplot(4, 1, 3, sharex=ax_rolling_returns)
     ax_underwater = plt.subplot(4, 1, 4, sharex=ax_rolling_returns)

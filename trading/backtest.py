@@ -1,7 +1,7 @@
 import logging
-import threading
 import json
 from abc import ABCMeta, abstractmethod
+from multiprocessing.pool import ThreadPool
 
 class Backtest(object):
 
@@ -35,8 +35,11 @@ class Backtest(object):
         Run the backtest.
         """
         self._log_backtest_info()
-        event_handler_thread = threading.Thread(target=self.event_handler, args=())
-        event_handler_thread.start()
+        pool = ThreadPool(processes=1)
+        async_result = pool.apply_async(self.event_handler)
+        return async_result.get()
+        # event_handler_thread = threading.Thread(target=self.event_handler, args=())
+        # event_handler_thread.start()
 
     def finished(self):
         self.analytics.run()

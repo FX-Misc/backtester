@@ -79,30 +79,21 @@ def plot_rolling_returns(returns, factor_returns=None, live_start_date=None, con
 
     ax.set_ylabel('Cumulative returns')
     ax.set_xlabel('')
-
     benchmark_rets = utils.get_symbol_rets('SPY')
     benchmark_rets.index = pd.DatetimeIndex([i.replace(tzinfo=None) for i in benchmark_rets.index])
     # If the strategy's history is longer than the benchmark's, limit the strategy
     if returns.index[0] < benchmark_rets.index[0]:
         returns = returns[returns.index > benchmark_rets.index[0]]
-
     if volatility_match and factor_returns is None:
-        raise ValueError('volatility_match requires passing of'
-                         'factor_returns.')
+        raise ValueError('volatility_match requires passing of factor_returns.')
     elif volatility_match and factor_returns is not None:
         bmark_vol = factor_returns.loc[returns.index].std()
         returns = (returns / returns.std()) * bmark_vol
-
     cum_rets = timeseries.cum_returns(returns, 1.0)
-    y_axis_formatter = FuncFormatter(utils.percentage)
-    # ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
-
     if factor_returns is None:
         factor_returns = benchmark_rets
-    # if factor_returns is not None:
     cum_factor_returns = timeseries.cum_returns(factor_returns[cum_rets.index], 1.0)
-    cum_factor_returns.plot(lw=2, color='gray',label=factor_returns.name, alpha=0.60,
-                            ax=ax, **kwargs)
+    cum_factor_returns.plot(lw=2, color='gray',label=factor_returns.name, alpha=0.60, ax=ax, **kwargs)
     if live_start_date is not None:
         live_start_date = utils.get_utc_timestamp(live_start_date)
         is_cum_returns = cum_rets.loc[cum_rets.index < live_start_date]
@@ -679,7 +670,7 @@ def show_perf_stats(returns, factor_returns, live_start_date=None, bootstrap=Fal
                       fmt='{0:.2f}')
 
 
-def context(context='notebook', font_scale=1.5, rc=None):
+def context(context='notebook', font_scale=1.0, rc=None):
     """Create pyfolio default plotting style context.
 
     Under the hood, calls and returns seaborn.plotting_context() with
@@ -716,13 +707,12 @@ def context(context='notebook', font_scale=1.5, rc=None):
     if rc is None:
         rc = {}
 
-    rc_default = {'lines.linewidth': 1.5,
+    rc_default = {'lines.linewidth': 1.0,
                   'axes.facecolor': '0.995',
-                  'figure.facecolor': '0.97'}
+                  'figure.facecolor': '0.97',}
 
     # Add defaults if they do not exist
+    print rc_default.items()
     for name, val in rc_default.items():
         rc.setdefault(name, val)
-
-    return sns.plotting_context(context=context, font_scale=font_scale,
-                                rc=rc)
+    return sns.plotting_context(context=context, font_scale=font_scale, rc=rc)
