@@ -11,7 +11,7 @@ class BuyStrategy(StockStrategy):
         self.curr_dt = None
 
         self.sym1 = products[0].symbol
-        # self.sym2 = products[1].symbol
+        self.sym2 = products[1].symbol
         self.fills = []
         self.positions_series = OrderedDict()
         self.cash_series = OrderedDict()
@@ -19,7 +19,7 @@ class BuyStrategy(StockStrategy):
     def new_tick(self, market_event):
         self.curr_dt = market_event.dt
         aapl_order_qty = randint(0, 100)
-        msft_order_qty = randint(-100,100)
+        # msft_order_qty = randint(-100,100)
         temp_capital = self.cash
         if self._check_order(temp_capital, self.sym1, aapl_order_qty):
             self.order(self.sym1, aapl_order_qty)

@@ -16,7 +16,7 @@ from analytics.plotting import plot_holdings
 
 def run():
     events = Queue()
-    products = [Stock('AAPL')]
+    products = [Stock('MSFT')]
     symbols = [product.symbol for product in products]
     start_date = dt.datetime(year=2012, month=1, day=1)
     end_date = dt.datetime(year=2016, month=1, day=10)
