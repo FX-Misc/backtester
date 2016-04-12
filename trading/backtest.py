@@ -17,16 +17,16 @@ class Backtest(object):
         self.start_date = start_date
         self.end_date = end_date
         self.continue_backtest = True
-        self.logger = logging.getLogger('Backtest')
-
-        logFormatter = logging.Formatter("%(asctime)s %(message)s")
-        fileHandler = logging.FileHandler('output/backtest_log', mode='w')
-        fileHandler.setFormatter(logFormatter)
-        logging.basicConfig(format=' %(message)s',
-                            datefmt='%H:%M:%S',
-                            level=logging.DEBUG)
-        self.logger.addHandler(fileHandler)
-        self.logger.propagate = False
+        # self.logger = logging.getLogger('Backtest')
+        #
+        # logFormatter = logging.Formatter("%(asctime)s %(message)s")
+        # fileHandler = logging.FileHandler('output/backtest_log', mode='w')
+        # fileHandler.setFormatter(logFormatter)
+        # logging.basicConfig(format=' %(message)s',
+        #                     datefmt='%H:%M:%S',
+        #                     level=logging.DEBUG)
+        # self.logger.addHandler(fileHandler)
+        # self.logger.propagate = False
 
     __metaclass__ = ABCMeta
 
