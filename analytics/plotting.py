@@ -776,6 +776,7 @@ def plot_exposures(returns, positions_alloc, ax=None, **kwargs):
         kind='area', color=['lightblue', 'green'], alpha=1.0,
         ax=ax, **kwargs)
     df_cum_rets = timeseries.cum_returns(returns, starting_value=1)
+    print df_cum_rets.index[0], df_cum_rets.index[-1]
     ax.set_xlim((df_cum_rets.index[0], df_cum_rets.index[-1]))
     ax.set_title("Long/Short Exposure")
     ax.set_ylabel('Exposure')

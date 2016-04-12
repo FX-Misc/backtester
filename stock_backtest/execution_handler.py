@@ -95,6 +95,7 @@ class StockBacktestExecutionHandler(ExecutionHandler):
         :return: (StockBacktestFillEvent)
         """
         fill_event = StockBacktestFillEvent(self.curr_dt, order_event.symbol, order_event.quantity,
-                                            fill_price*order_event.quantity, commission=COMMISSION)
+                                            fill_price, fill_price*order_event.quantity,
+                                            commission=COMMISSION)
         self.events.put(fill_event)
 

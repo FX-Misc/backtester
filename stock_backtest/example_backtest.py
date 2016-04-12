@@ -25,6 +25,7 @@ def run():
     strategy = BuyStrategy(events, data, products, initial_cash=100000)
     backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
     backtest.run()
+    transactions_tear = tears.create_txn_tear_sheet(strategy.transactions, )
     # print tabulate.tabulate(strategy.time_series, headers='keys', tablefmt='pipe')
     # holdings_fig = plt.figure()
     # for i in range(len(symbols)):

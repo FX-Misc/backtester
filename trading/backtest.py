@@ -40,6 +40,7 @@ class Backtest(object):
 
     def finished(self):
         self.analytics.run()
+        print 'FINISHED BACKTEST.\n'
 
     @abstractmethod
     def event_handler(self):
@@ -52,5 +53,11 @@ class Backtest(object):
             'START': self.start_date.strftime("%-m/%-d/%Y %H:%M"),
             'END': self.end_date.strftime("%-m/%-d/%Y %H:%M"),
         }
-        print 'Running backtest with params:' + str(info)
+        print 'STARTING BACKTEST \n' \
+              'Strategy: {} \n' \
+              'Execution: {} \n' \
+              'Start: {}, End: {} \n'.format(self.strategy.__class__.__name__,
+                                             self.execution.__class__.__name__,
+                                             self.start_date.strftime("%-m/%-d/%Y %H:%M"),
+                                             self.end_date.strftime("%-m/%-d/%Y %H:%M"))
         # self.logger.info(json.dumps(info))

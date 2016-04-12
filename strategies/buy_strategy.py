@@ -16,7 +16,7 @@ class BuyStrategy(StockStrategy):
     def new_tick(self, market_event):
         self.curr_dt = market_event.dt
         aapl_order_qty = randint(-100, 100)
-        msft_order_qty = randint(-100,100)
+        msft_order_qty = randint(-100, 100)
         temp_capital = self.cash
         if self._check_order(temp_capital, self.sym1, aapl_order_qty):
             self.order(self.sym1, aapl_order_qty)

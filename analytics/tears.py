@@ -129,8 +129,7 @@ def create_full_tear_sheet(returns,
     else:
         unadjusted_returns = None
 
-    create_returns_tear_sheet(
-        returns,
+    create_returns_tear_sheet(returns,
         live_start_date=live_start_date,
         cone_std=cone_std,
         benchmark_rets=benchmark_rets,
@@ -420,34 +419,20 @@ def create_txn_tear_sheet(returns, positions, transactions, unadjusted_returns=N
     ax_turnover = plt.subplot(gs[0, :])
     ax_daily_volume = plt.subplot(gs[1, :], sharex=ax_turnover)
     ax_turnover_hist = plt.subplot(gs[2, :])
-
-    plotting.plot_turnover(
-        returns,
-        transactions,
-        positions,
-        ax=ax_turnover)
-
+    plotting.plot_turnover(returns, transactions, positions, ax=ax_turnover)
     plotting.plot_daily_volume(returns, transactions, ax=ax_daily_volume)
 
     try:
-        plotting.plot_daily_turnover_hist(transactions, positions,
-                                          ax=ax_turnover_hist)
+        plotting.plot_daily_turnover_hist(transactions, positions, ax=ax_turnover_hist)
     except ValueError:
         warnings.warn('Unable to generate turnover plot.', UserWarning)
 
     if unadjusted_returns is not None:
         ax_slippage_sweep = plt.subplot(gs[3, :])
-        plotting.plot_slippage_sweep(unadjusted_returns,
-                                     transactions,
-                                     positions,
-                                     ax=ax_slippage_sweep
-                                     )
+        plotting.plot_slippage_sweep(unadjusted_returns, transactions, positions, ax=ax_slippage_sweep)
         ax_slippage_sensitivity = plt.subplot(gs[4, :])
-        plotting.plot_slippage_sensitivity(unadjusted_returns,
-                                           transactions,
-                                           positions,
-                                           ax=ax_slippage_sensitivity
-                                           )
+        plotting.plot_slippage_sensitivity(unadjusted_returns, transactions, positions, ax=ax_slippage_sensitivity)
+
     for ax in fig.axes:
         plt.setp(ax.get_xticklabels(), visible=True)
 
