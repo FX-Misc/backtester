@@ -1258,7 +1258,7 @@ def show_worst_drawdown_periods(returns, top=5):
     """
 
     drawdown_df = timeseries.gen_drawdown_table(returns, top=top)
-    utils.print_table(drawdown_df.sort('net drawdown in %', ascending=False),
+    utils.print_table(drawdown_df.sort_values('net drawdown in %', ascending=False),
                       name='Worst Drawdown Periods', fmt='{0:.2f}')
 
 
