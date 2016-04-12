@@ -26,7 +26,7 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         """
         Updates the current_day_data.
         """
-        log.info("Loading data for " + self.symbol + " " + str(self.curr_day))
+        # log.info("Loading data for " + self.symbol + " " + str(self.curr_day))
         try:
             if len(self.symbols) > 1:
                 self.curr_day_data = get_data_multi(self.symbols, self.curr_day, second_bars=self.second_bars,

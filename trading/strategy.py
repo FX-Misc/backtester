@@ -86,6 +86,7 @@ class Strategy(object):
     def finished(self):
         """
         Call back for when a backtest (or live-trading) is finished.
+        Creates the time_series (DataFrame)
         """
         raise NotImplementedError("Strategy.finished()")
 
@@ -104,6 +105,10 @@ class Strategy(object):
     #     :return:
     #     """
     #     raise NotImplementedError("new_day()")
+
+    def get_positions(self):
+        pass
+
 
 class FuturesStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=0, continuous=True):
@@ -129,6 +134,7 @@ class FuturesStrategy(Strategy):
     def finished(self):
         pass
 
+
 class StockStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=1000000, price_field='Open'):
         super(StockStrategy, self).__init__(events, data, products, initial_cash)
@@ -141,7 +147,7 @@ class StockStrategy(Strategy):
         _positions = [self.positions[product.symbol] for product in self.products]
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + mkt_prices + _positions + [self.cash]
 
-    def finished(self):
+    def finished(self, save=False):
         for product in self.products:
             self.time_series[product.symbol+'_val'] = self.time_series[product.symbol+'_pos']*\
                                                       self.time_series[product.symbol+'_mkt']

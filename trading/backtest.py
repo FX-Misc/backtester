@@ -18,7 +18,6 @@ class Backtest(object):
         self.end_date = end_date
         self.continue_backtest = True
         # self.logger = logging.getLogger('Backtest')
-        #
         # logFormatter = logging.Formatter("%(asctime)s %(message)s")
         # fileHandler = logging.FileHandler('output/backtest_log', mode='w')
         # fileHandler.setFormatter(logFormatter)
@@ -38,8 +37,6 @@ class Backtest(object):
         pool = ThreadPool(processes=1)
         async_result = pool.apply_async(self.event_handler)
         return async_result.get()
-        # event_handler_thread = threading.Thread(target=self.event_handler, args=())
-        # event_handler_thread.start()
 
     def finished(self):
         self.analytics.run()
@@ -55,4 +52,5 @@ class Backtest(object):
             'START': self.start_date.strftime("%-m/%-d/%Y %H:%M"),
             'END': self.end_date.strftime("%-m/%-d/%Y %H:%M"),
         }
-        self.logger.info(json.dumps(info))
+        print 'Running backtest with params:' + str(info)
+        # self.logger.info(json.dumps(info))

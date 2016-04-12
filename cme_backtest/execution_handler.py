@@ -125,7 +125,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
 
     def clear_resting_orders(self):
         if len(self.resting_orders) > 0:
-            log.info("All resting orders removed")
+            # log.info("All resting orders removed")
             self.resting_orders = []
 
     @staticmethod
@@ -149,7 +149,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         fill_cost = float(order_event.quantity*fill_price)
         fill_event = CMEBacktestFillEvent(order_event.datetime, fill_time, order_event.symbol,
                                           order_event.quantity, fill_cost, commission=self.commission)
-        log.info(fill_event)
+        # log.info(fill_event)
         self.events.put(fill_event)
 
     def _check_day_data(self, datetime):
