@@ -287,28 +287,22 @@ def create_returns_tear_sheet(returns, live_start_date=None, cone_std=(1.0, 1.5,
 
     if benchmark_rets is None:
         benchmark_rets = utils.get_symbol_rets('SPY')
+        benchmark_rets.index = pd.DatetimeIndex([i.replace(tzinfo=None) for i in benchmark_rets.index])
         # If the strategy's history is longer than the benchmark's, limit strategy
         if returns.index[0] < benchmark_rets.index[0]:
             returns = returns[returns.index > benchmark_rets.index[0]]
 
     df_cum_rets = timeseries.cum_returns(returns, starting_value=1)
-    print("Entire data start date: " + str(df_cum_rets
-                                           .index[0].strftime('%Y-%m-%d')))
-    print("Entire data end date: " + str(df_cum_rets
-                                         .index[-1].strftime('%Y-%m-%d')))
-
+    print("Entire data start date: " + str(df_cum_rets.index[0].strftime('%Y-%m-%d')))
+    print("Entire data end date: " + str(df_cum_rets.index[-1].strftime('%Y-%m-%d')))
     print('\n')
-
-    plotting.show_perf_stats(returns, benchmark_rets,
-                             bootstrap=bootstrap,
-                             live_start_date=live_start_date)
+    plotting.show_perf_stats(returns, benchmark_rets, bootstrap=bootstrap, live_start_date=live_start_date)
 
     if live_start_date is not None:
         vertical_sections = 11
         live_start_date = utils.get_utc_timestamp(live_start_date)
     else:
         vertical_sections = 10
-
     if bootstrap:
         vertical_sections += 1
 
@@ -319,13 +313,13 @@ def create_returns_tear_sheet(returns, live_start_date=None, cone_std=(1.0, 1.5,
                                                sharex=ax_rolling_returns)
     ax_rolling_beta = plt.subplot(gs[3, :], sharex=ax_rolling_returns)
     ax_rolling_sharpe = plt.subplot(gs[4, :], sharex=ax_rolling_returns)
-    ax_rolling_risk = plt.subplot(gs[5, :], sharex=ax_rolling_returns)
-    ax_drawdown = plt.subplot(gs[6, :], sharex=ax_rolling_returns)
-    ax_underwater = plt.subplot(gs[7, :], sharex=ax_rolling_returns)
-    ax_monthly_heatmap = plt.subplot(gs[8, 0])
-    ax_annual_returns = plt.subplot(gs[8, 1])
-    ax_monthly_dist = plt.subplot(gs[8, 2])
-    ax_return_quantiles = plt.subplot(gs[9, :])
+    # ax_rolling_risk = plt.subplot(gs[5, :], sharex=ax_rolling_returns)
+    ax_drawdown = plt.subplot(gs[5, :], sharex=ax_rolling_returns)
+    ax_underwater = plt.subplot(gs[6, :], sharex=ax_rolling_returns)
+    ax_monthly_heatmap = plt.subplot(gs[7, 0])
+    ax_annual_returns = plt.subplot(gs[7, 1])
+    ax_monthly_dist = plt.subplot(gs[7, 2])
+    ax_return_quantiles = plt.subplot(gs[8, :])
 
     plotting.plot_rolling_returns(
         returns,
@@ -353,8 +347,8 @@ def create_returns_tear_sheet(returns, live_start_date=None, cone_std=(1.0, 1.5,
     plotting.plot_rolling_sharpe(
         returns, ax=ax_rolling_sharpe)
 
-    plotting.plot_rolling_fama_french(
-        returns, ax=ax_rolling_risk)
+    # plotting.plot_rolling_fama_french(
+    #     returns, ax=ax_rolling_risk)
 
     # Drawdowns
     plotting.plot_drawdown_periods(
@@ -632,8 +626,8 @@ def create_interesting_times_tear_sheet(returns, benchmark_rets=None, legend_loc
 
 
 @plotting_context
-def create_bayesian_tear_sheet(returns, benchmark_rets=None, live_start_date=None, samples=2000,
-                               return_fig=False, stoch_vol=False):
+def create_bayesian_tear_sheet(returns, benchmark_rets=None, live_start_date=None, samples=2000,return_fig=False,
+                               stoch_vol=False):
     """
     Generate a number of Bayesian distributions and a Bayesian
     cone plot of returns.

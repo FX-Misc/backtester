@@ -16,7 +16,7 @@ from analytics.plotting import plot_holdings
 
 def run():
     events = Queue()
-    products = [Stock('MSFT')]
+    products = [Stock('MSFT'), Stock('ORCL')]
     symbols = [product.symbol for product in products]
     start_date = dt.datetime(year=2012, month=1, day=1)
     end_date = dt.datetime(year=2016, month=1, day=10)
@@ -24,7 +24,7 @@ def run():
     execution = StockBacktestExecutionHandler(events)
     strategy = BuyStrategy(events, data, products, initial_cash=100000)
     backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
-    time_series = backtest.run()
+    backtest.run()
     # print tabulate.tabulate(strategy.time_series, headers='keys', tablefmt='pipe')
     # holdings_fig = plt.figure()
     # for i in range(len(symbols)):
@@ -35,14 +35,12 @@ def run():
     #     ax = holdings_fig.add_subplot(len(symbols), 1, i+1)
     #     plot_holdings(strategy.time_series['returns'], positions, ax=ax)
     # plt.ioff()
-    positions_cols = [product.symbol+'_val' for product in products] + ['cash']
-    positions = pd.DataFrame(np.array([strategy.time_series[product.symbol+'_val'] for product in products]
-                             + [strategy.time_series['cash']]).transpose(), columns=positions_cols,
-                             index=strategy.time_series.index)
-    positions_tear = tears.create_position_tear_sheet(strategy.time_series['returns'], positions, return_fig=True)
-    returns_tear = tears.create_returns_tear_sheet(strategy.time_series['returns'], return_fig=True)
-    positions_tear.savefig('positions.png', dpi=800)
-    returns_tear.savefig('returns.png', dpi=800)
+    # positions_cols = [product.symbol+'_val' for product in products] + ['cash']
+    # positions = pd.DataFrame(np.array([strategy.time_series[product.symbol+'_val'] for product in products]
+    #                          + [strategy.time_series['cash']]).transpose(), columns=positions_cols,
+    #                          index=strategy.time_series.index)
+    # positions_tear = tears.create_position_tear_sheet(strategy.time_series['returns'], positions, return_fig=True)
+    tears.create_returns_tear_sheet(strategy.time_series['returns'])
 
 if __name__ == "__main__":
     run()

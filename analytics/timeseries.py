@@ -411,11 +411,8 @@ def alpha_beta(returns, factor_returns):
         Beta.
 
 """
-
     ret_index = returns.index
-    beta, alpha = sp.stats.linregress(factor_returns.loc[ret_index].values,
-                                      returns.values)[:2]
-
+    beta, alpha = sp.stats.linregress(factor_returns.loc[ret_index].values, returns.values)[:2]
     return alpha * APPROX_BDAYS_PER_YEAR, beta
 
 
@@ -681,8 +678,7 @@ def calc_multifactor(returns, factors):
     return results.params
 
 
-def rolling_beta(returns, factor_returns,
-                 rolling_window=APPROX_BDAYS_PER_MONTH * 6):
+def rolling_beta(returns, factor_returns, rolling_window=APPROX_BDAYS_PER_MONTH * 6):
     """Determines the rolling beta of a strategy.
 
     Parameters
@@ -710,21 +706,15 @@ def rolling_beta(returns, factor_returns,
     """
     if factor_returns.ndim > 1:
         # Apply column-wise
-        return factor_returns.apply(partial(rolling_beta, returns),
-                                    rolling_window=rolling_window)
+        return factor_returns.apply(partial(rolling_beta, returns), rolling_window=rolling_window)
     else:
         out = pd.Series(index=returns.index)
-        for beg, end in zip(returns.index[0:-rolling_window],
-                            returns.index[rolling_window:]):
-            out.loc[end] = alpha_beta(
-                returns.loc[beg:end],
-                factor_returns.loc[beg:end])[1]
-
+        for beg, end in zip(returns.index[0:-rolling_window], returns.index[rolling_window:]):
+            out.loc[end] = alpha_beta(returns.loc[beg:end], factor_returns.loc[beg:end])[1]
         return out
 
 
-def rolling_fama_french(returns, factor_returns=None,
-                        rolling_window=APPROX_BDAYS_PER_MONTH * 6):
+def rolling_fama_french(returns, factor_returns=None, rolling_window=APPROX_BDAYS_PER_MONTH * 6):
     """Computes rolling Fama-French single factor betas.
 
     Specifically, returns SMB, HML, and UMD.

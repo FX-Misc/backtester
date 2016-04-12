@@ -32,7 +32,7 @@ class StockBacktest(Backtest):
                 self.data.update()
             else:
                 self.strategy.finished()
-                return 'foo' #self.strategy.time_series
+                return
             while True:
                 try:
                     event = self.events.get(False)
