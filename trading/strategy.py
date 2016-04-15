@@ -149,12 +149,23 @@ class StockStrategy(Strategy):
         _positions = [self.positions[product.symbol] for product in self.products]
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_prices + _positions + [self.cash]
 
+    def get_positions(self):
+        positions_cols = [product.symbol for product in self.products] + ['cash']
+        positions = pd.DataFrame(np.array([self.time_series[product.symbol] for product in self.products] +
+                                          [self.time_series['cash']]
+                                          ).transpose(),
+                                 columns=positions_cols,
+                                 index=self.time_series.index)
+        return positions
+
+    def get_returns(self):
+        return self.time_series['total_val'].pct_change().fillna(0)
+
     def finished(self, save=False):
         for product in self.products:
             self.time_series[product.symbol] = self.time_series[product.symbol+'_pos']*\
                                                       self.time_series[product.symbol+'_mkt']
         self.time_series['total_val'] = np.sum(self.time_series[product.symbol] for product in self.products) \
                                   + self.time_series['cash']
-        self.time_series['returns'] = self.time_series['total_val'].pct_change().fillna(0)
         self.time_series.set_index('dt', inplace=True)
         self.transactions.set_index('dt', inplace=True)
