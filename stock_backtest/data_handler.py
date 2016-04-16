@@ -1,10 +1,10 @@
 import datetime as dt
-import utils.data_utils.yahoo_finance as yf
+import utils.yahoo_finance as yf
 from trading.data_handler import BacktestDataHandler
 from events import StockBacktestMarketEvent
 
 class StockBacktestDataHandler(BacktestDataHandler):
-    def __init__(self, events, symbols, start_date, end_date):
+    def __init__(self, events, symbols, start_date, end_date, call_back):
         """
         Handles data for (one) stock using pandas/yahoo finance API.
         :param events: (Queue)
@@ -18,6 +18,7 @@ class StockBacktestDataHandler(BacktestDataHandler):
         self.curr_data = {}
         self.curr_dt = start_date
         self.continue_backtest = True
+        self.callback = call_back
 
     def get_latest(self, n=1):
         """
@@ -25,6 +26,8 @@ class StockBacktestDataHandler(BacktestDataHandler):
         :return: (Series)
         """
         latest_data = self.curr_data
+        print latest_data
+        self.callback(self.curr_dt, latest_data['MSFT']['Open'])
         self.curr_data = {}
         return latest_data
 

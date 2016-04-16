@@ -1,6 +1,6 @@
 import numpy as np
-import utils.data_utils.yahoo_finance as yf
-from events import StockBacktestOrderEvent, StockBacktestFillEvent
+import utils.yahoo_finance as yf
+from events import StockBacktestFillEvent
 from trading.execution_handler import ExecutionHandler
 
 COMMISSION = 5.0
@@ -35,7 +35,7 @@ class StockBacktestExecutionHandler(ExecutionHandler):
     def _place_order(self, order_event):
         """
         Handles either a MARKET or LIMIT order.
-        :param order_event: (StockBacktestOrderEvent)
+        :param order_event: (OrderEvent)
         :return:
         """
         order_handlers = {
@@ -77,7 +77,7 @@ class StockBacktestExecutionHandler(ExecutionHandler):
     def _fill_market_order(self, order_event):
         """
         Fills an order at the current market price and puts the fill event into the queue.
-        :param order_event: (StockBacktestOrderEvent)
+        :param order_event: (OrderEvent)
         """
         if order_event.quantity == 0:
             return

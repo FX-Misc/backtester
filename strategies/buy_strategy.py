@@ -12,7 +12,6 @@ class BuyStrategy(StockStrategy):
         self.fills = []
 
     def new_tick(self, market_event):
-        print 'new tick'
         self.curr_dt = market_event.dt
         sym1_order_qty = randint(-100, 100)
         sym2_order_qty = randint(-100, 100)

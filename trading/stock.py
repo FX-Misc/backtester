@@ -1,4 +1,4 @@
-import utils.data_utils.yahoo_finance as yf
+import utils.yahoo_finance as yf
 
 class Stock(object):
     def __init__(self, symbol, name=None, sector=None):
