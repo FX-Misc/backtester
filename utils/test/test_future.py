@@ -1,5 +1,7 @@
 import unittest
-from utils.futures_contract import FuturesContract
+
+from trading.futures_contract import FuturesContract
+
 
 class TestFuture(unittest.TestCase):
     def test_future(self):

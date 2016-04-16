@@ -5,7 +5,7 @@ import time
 import threading
 from collections import deque
 from ib.ext.Order import Order
-from bt.execution_handler import ExecutionHandler
+from trading.execution_handler import ExecutionHandler
 from ib_events import IBOrderEvent
 from ib_connection import IBConnection
 from ib_utils import get_contract_details, get_execution_details
@@ -22,7 +22,8 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         self.events = events
         self.port = config['PORT']
         self.client_id = config['EXECUTION_CLIENT_ID']
-        super(IBExecutionHandler, self).__init__(self.port, self.events, self.client_id)
+        ExecutionHandler.__init__(self, self.events)
+        IBConnection.__init__(self, self.events, self.port, self.client_id)
 
         # Reply handler thread
         thread = threading.Thread(target=self._reply_handler, args=())
@@ -32,7 +33,7 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         self.orders = {}
         self.fills = deque()
 
-    def process_order(self, order_event, contract=None):
+    def process_new_order(self, order_event, contract=None):
         """
         Processes an IBOrderEvent (called from LiveTrade), creates an (ib.ext.Order) and sends it to IB.
         LiveTrade fills the contract param.
@@ -44,7 +45,6 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         send = self._send_order(contract, order)
         if send:
             log.info(str(order_event))
-
 
     def _send_order(self, contract, order):
         """
@@ -124,7 +124,6 @@ def create_order(order_type, quantity, limit_price=None):
     :return: (ib.ext.Order)
     """
     order = Order()
-
     if order_type is "MARKET":
         order.m_orderType = "MKT"
     elif order_type is "LIMIT":
@@ -139,12 +138,7 @@ def create_order(order_type, quantity, limit_price=None):
     elif quantity < 0:
         order.m_action = "SELL"
     assert(order.m_action is not None), "Invalid order action!"
-
     order.m_totalQuantity = abs(quantity)
     assert(abs(order.m_totalQuantity) > 0), "Invalid order quantity!"
 
     return order
-
-from queue import Queue
-if __name__ == "__main__":
-    execution = IBExecutionHandler(Queue())

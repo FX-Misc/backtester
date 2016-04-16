@@ -19,7 +19,7 @@ class StockBacktestExecutionHandler(ExecutionHandler):
         self.resting_orders = []
         self.curr_dt = None
 
-    def process_order(self, order_event):
+    def process_new_order(self, order_event):
         self._check_symbol_data(order_event.symbol)
         self._place_order(order_event)
 

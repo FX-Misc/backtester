@@ -15,7 +15,7 @@ class TestCMEBacktestExecutionHandler(unittest.TestCase):
     def test_check_day_data(self):
         symbols = ['CLF6', 'GCZ5']
         events = Queue()
-        execution_handler = CMEBacktestExecutionHandler(symbols, events)
+        execution_handler = CMEBacktestExecutionHandler(events, symbols)
         order_dt = dt.datetime(year=2015, month=11, day=18)
         execution_handler._check_day_data(order_dt)
         self.assertIsNotNone(execution_handler.current_day_data)
@@ -28,7 +28,7 @@ class TestCMEBacktestExecutionHandler(unittest.TestCase):
     def test_execute_order(self):
         symbols = ['CLF6', 'GCZ5']
         events = Queue()
-        execution_handler = CMEBacktestExecutionHandler(symbols, events)
+        execution_handler = CMEBacktestExecutionHandler(events, symbols)
         order_dt = dt.datetime(year=2015, month=11, day=18)
         execution_handler._check_day_data(order_dt)
         order_event = CMEBacktestOrderEvent('CLF6', order_dt, 'MARKET', 1)

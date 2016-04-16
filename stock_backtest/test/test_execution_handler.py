@@ -15,7 +15,7 @@ class TestStockBacktestExecutionHandler(unittest.TestCase):
     def test_process_order(self):
         order_dt = dt.datetime(year=2016, month=4, day=6)
         order = StockBacktestOrderEvent(order_dt, self.symbol, 10, 'MARKET')
-        self.execution.process_order(order)
+        self.execution.process_new_order(order)
         pass
 
     def test_process_resting_orders(self):

@@ -325,7 +325,7 @@ def run_forwardtest():
                                   closing_time=closing_time,
                                   standardize=standardize)
 
-    execution = CMEBacktestExecutionHandler(symbols, events, second_bars=True)
+    execution = CMEBacktestExecutionHandler(events, symbols, second_bars=True)
     backtest = CMEBacktest(events, bars, strategy, execution, start_date, end_date)
     backtest.run()
 

@@ -1,5 +1,3 @@
-import json
-from multiprocessing import Process
 from Queue import Empty
 from data_handler import CMEBacktestDataHandler
 from trading.backtest import Backtest
@@ -10,10 +8,6 @@ class CMEBacktest(Backtest):
         assert isinstance(data, CMEBacktestDataHandler)
         super(CMEBacktest, self).__init__(events, strategy, data, execution, start_date, end_date, analytics)
         self.cash = 0
-
-        p = Process(target=say_hello, args=('Daniel',))
-        p.start()
-        p.join()
 
     def event_handler(self):
         event_handlers = {
@@ -26,7 +20,9 @@ class CMEBacktest(Backtest):
                 self.data.update()
             else:
                 self.strategy.finished()
-                break
+                print 'strategy finished'
+                return
+                # break
             while True:
                 try:
                     event = self.events.get(False)
@@ -42,10 +38,8 @@ class CMEBacktest(Backtest):
         self.execution.process_resting_orders(market_event)
 
     def _handle_order_event(self, order_event):
-        self.execution.process_order(order_event)
-        # self.logger.info(json.dumps(order_event.info()))
+        self.execution.process_new_order(order_event)
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill_update(fill_event)
         self.strategy.new_fill(fill_event)
-        # self.logger.info(json.dumps(fill_event.info()))

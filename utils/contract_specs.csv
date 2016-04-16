@@ -139,7 +139,7 @@ FY,CME,CME/FY,Dated-to-Frontline Brent Swap,Active,1,10,1000,USD,1000 bbl,USD / 
 G,ICE,ICE/G,Gas Oil-(IPE),Active,1,1,100,USD,100 tonnes,USD/tonne,5,5,JKMNQUVXZ,4/6/1981,08:00 - 17:27,,
 G,ICE,ICE/G,Gas Oil -IPE,Active,1,1,100,USD,100 tonne,USD/tonne,25,25,JKMNQUVXZ,9/9/2003,20:00 - 09:45,,
 GA,CME,CME/GA,Singapore Gasoil v ICE Rdam Gasoil Swap,Active,1,10,1000,USD,1000 bbl,USD / bbl,1,10,JKMN,10/9/2008,18:00 - 17:15,,
-GC,CME,CME/GC,Gold-COMEX,Active,1,10,100,USD,100 oz troy,USD/troy oz,1,10,GHJKMQVZ,1/2/1975,18:00 - 17:15,,
+GC,NYMEX,CME/GC,Gold-COMEX,Active,1,10,100,USD,100 oz troy,USD/troy oz,1,10,GHJKMQVZ,1/2/1975,18:00 - 17:15,,
 GE,CME,CME/GE,Eurodollar,Active,1,2.5,2500,USD,USD 1000000,USD / basis point,2.5,6.25,FGHJKMNQUVXZ,10/20/1995,17:00 - 16:00,,
 GE,CME,CME/GE,Jet Fuel Calendar Swap (Gulf Coast)-CLEAR,Active,1,4.2,42000,USD,42000 gallons,USD/gallon,1,4.2,FGHJKMNQUVXZ,8/30/2006,18:00 - 15:15,,
 GER,ICE,ICE/GER,Gaspool NG Monthly-ICE,Active,1,,,USD,1 MWh per hour per day per delivery period,MWh of natural gas per hour per day,1,,FGHJKMNQUVXZ,11/17/2010,07:00 - 17:00,,

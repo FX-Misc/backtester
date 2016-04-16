@@ -2,7 +2,7 @@ import logging
 import json
 from abc import ABCMeta, abstractmethod
 from multiprocessing.pool import Pool
-import multiprocessing
+from multiprocessing.process import Process
 
 class Backtest(object):
 
@@ -30,21 +30,11 @@ class Backtest(object):
 
     __metaclass__ = ABCMeta
 
-
     def run(self):
         """
         Run the backtest.
         """
         self._log_backtest_info()
-        # pool = ThreadPool(processes=1)
-        # async_result = pool.apply_async(self.event_handler)
-        # return async_result.get()
-
-        pool = Pool(processes=2)
-        names = ('frank', 'justin', 'osi', 'thomas')
-        # pool.map(unwrap_self_f, zip([self]*len(names), names))
-
-
         self.event_handler()
 
     def finished(self):

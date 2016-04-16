@@ -9,14 +9,13 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBConnection')
 
-
 # TODO: handle canceled orders
 
 class IBConnection(object):
 
-    def __init__(self, port, events, client_id, msg_interval=0.1):
-        self.port = port
+    def __init__(self, events, port=7495, client_id=100, msg_interval=0.1):
         self.events = events
+        self.port = port
         self.client_id = client_id
         self.account = ""
         self.connection = self._connect_ib()
@@ -31,7 +30,6 @@ class IBConnection(object):
         Connect to Interactive Brokers, and set the connection.
         :return: the IB connection
         """
-
         tws_conn = Connection.create(port=self.port, clientId=self.client_id)
         tws_conn.connect()                                             # attempt the connection
         tws_conn.register(self.ib_error_handler, 'Error')              # assign error handler
@@ -60,7 +58,7 @@ class IBConnection(object):
 
     @abstractmethod
     def _reply_handler(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def handle_connection_closed_msg(self, msg):
         print "Connection closed, should probably try to reconnect (TODO)"
@@ -76,13 +74,16 @@ class IBConnection(object):
         error_msg = msg['errorMsg']
 
         error_codes = {
-            2104: error_msg,                        # A market data farm is connected.
-            2106: error_msg,                        # A historical data farm is connected
-            103:  error_msg,#error_msg + ': ' + str(error_id)  # Duplicate order id
+            2104: error_msg,  # A market data farm is connected.
+            2106: error_msg,  # A historical data farm is connected
+            103:  error_msg,  # error_msg + ': ' + str(error_id)  # Duplicate order id
+            200:  error_msg,  # No security definition has been found for the request.
+            510:  error_msg,  # Request market data - sending error:
+            399:  error_msg.replace('\n', '|'),  # Order message
         }
 
         try:
-            log.info(error_codes[error_code])
+            log.info("{}| {}".format(error_code, error_codes[error_code]))
         except KeyError:
             print "NEED TO HANDLE ERROR CODE", error_code
 
@@ -115,6 +116,5 @@ class IBConnection(object):
             self.connection.disconnect()
             log.info("Disconnected from IB on port {}".format(self.port))
         except Exception, e:
-            print "WUT, error in destructor??"
-            print repr(e)
+            print "{} Error in destructor?".format(repr(e))
             pass

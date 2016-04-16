@@ -13,9 +13,9 @@ class IBOrderEvent(events.OrderEvent):
     :param quantity: (int):
     :param price: (float): if limit order
     """
-    def __init__(self, order_time, symbol, quantity, order_type=None):
-        super(IBOrderEvent, self).__init__(symbol, order_type, price, quantity)
-        self.datetime = order_time.datetime.now()
+    def __init__(self, symbol, quantity, order_type='MARKET', price=None, order_time=dt.datetime.now()):
+        super(IBOrderEvent, self).__init__(symbol, quantity, order_type, price, order_time)
+        self.datetime = dt.datetime.now()
 
     def __str__(self):
         return "ORDER | Symbol: {}, Time: {}, Qty: {}, Type: {}"\
@@ -44,9 +44,5 @@ class IBOpenOrderEvent(events.Event):
 class IBCommissionReportEvent(events.Event):
     def __init__(self):
         pass
-
-if __name__ == "__main__":
-    order = IBOrderEvent('GC', 'MARKET', 1)
-    print str(order)
 
 

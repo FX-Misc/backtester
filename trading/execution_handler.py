@@ -16,7 +16,7 @@ class ExecutionHandler(object):
         self.events = events
 
     @abstractmethod
-    def process_order(self, order_event):
+    def process_new_order(self, order_event):
         """
         Process an incoming order and sends a FillEvent to events on fill.
         :param order_event: (Event)

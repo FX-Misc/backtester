@@ -9,11 +9,13 @@ log = logging.getLogger('Backtest')
 
 class CMEBacktestDataHandler(BacktestDataHandler):
     def __init__(self, events, symbols, start_date, end_date,
-                 start_time=dt.timedelta(hours=3), end_time=dt.timedelta(hours=20, minutes=59),
+                 start_time=dt.timedelta(hours=3),
+                 end_time=dt.timedelta(hours=20, minutes=59),
                  second_bars=True):
 
         super(CMEBacktestDataHandler, self).__init__(events, symbols, start_date, end_date,
-                                                     start_time=start_time, end_time=end_time)
+                                                     start_time=start_time,
+                                                     end_time=end_time)
         self.second_bars = second_bars
         # self.latest_data = {symbol: None for symbol in self.symbols}
         self.latest_data = None
@@ -48,6 +50,8 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         return {self.symbol: _latest_data}
 
     def update(self):
+        if self.curr_day_index % 200 == 0:
+            print self.curr_day, self.curr_day_index
         if self.curr_day > self.end_date:
             self.continue_backtest = False
             return
@@ -65,3 +69,8 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         self.latest_data = self.curr_day_data.ix[self.curr_day_index]
         self.curr_day_index += 1
         self.events.put(CMEBacktestMarketEvent(self.latest_data['datetime']))
+
+    # def listener(self, q):
+    #     while True:
+    #         event = q.get()
+    #         print "(Add to DB)"

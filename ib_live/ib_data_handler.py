@@ -13,14 +13,17 @@ from ib_live.ib_connection import IBConnection
 
 class IBDataHandler(DataHandler, IBConnection):
 
-    def __init__(self, events, config):
+    def __init__(self, events, products, config):
         self.events = events
+        self.products = products
         self.port = config['PORT']
         self.client_id = config['DATA_CLIENT_ID']
-        super(IBDataHandler, self).__init__(self.port, self.events, self.client_id)
+        DataHandler.__init__(self, self.events)
+        IBConnection.__init__(self, self.events, self.port, self.client_id)
 
-        # Subscribe to mkt data feed
-        contract = config['CONTRACT']
+        # Subscribe to mkt data feeds
+        # contract = config['CONTRACT']
+        contract = products[0].ib_contract
         self._req_mkt_data(contract)
 
         # Reply handler thread
@@ -28,7 +31,8 @@ class IBDataHandler(DataHandler, IBConnection):
         thread.daemon = True
         thread.start()
 
-        self.symbols = config['SYMBOLS']
+        # self.symbols = config['SYMBOLS']
+        self.symbols = [product.symbol for product in self.products]
         self.last_tick = {}
 
         log.info("IBDataHandler initialized!")
@@ -46,13 +50,13 @@ class IBDataHandler(DataHandler, IBConnection):
         :param type:
         :return:
         """
-        self.connection.reqMarketDataType(3)  # type 3 is for delayed data
+        self.connection.reqMarketDataType(1)  # type 3 is for delayed data
         self.connection.reqMktData(12356, contract, "", False)
 
-    def get_latest_bars(self, n=1):
+    def get_latest(self, n=1):
         return self.last_tick
 
-    def update_bars(self):
+    def update(self):
         pass
 
     def listen_data(self):
@@ -65,12 +69,13 @@ class IBDataHandler(DataHandler, IBConnection):
         :return:
         """
         reply_handlers = {
-            'connectionClosed': super(IBDataHandler, self).handle_connection_closed_msg,
             'error': super(IBDataHandler, self).handle_error_msg,
+            'connectionClosed': super(IBDataHandler, self).handle_connection_closed_msg,
             'managedAccounts': super(IBDataHandler, self).handle_managed_accounts_msg,
             'nextValidId': super(IBDataHandler, self).handle_next_valid_id_msg,
             'tickPrice': self._handle_tick_price,
-            'tickSize': self._handle_tick_size
+            'tickSize': self._handle_tick_size,
+            'tickGeneric': self._handle_tick_generic,
         }
 
         while True:
@@ -82,22 +87,21 @@ class IBDataHandler(DataHandler, IBConnection):
                     event = reply_handlers[msg.typeName](msg_dict)  # format message as dict
                     self.events.put(event)
                 except KeyError, e:
-                    print repr(e)
-                    print msg.typeName, 'NEED TO HANDLE THIS KIND OF MESSAGE'
+                    print "{} Need to handle message type: {}".format(repr(e), msg.typeName)
             except IndexError:
                 time.sleep(self.msg_interval)
 
     def _handle_tick_size(self, msg):
         """
         tickerId (int) The ticker Id that was specified previously in the call to reqMktData()
-        field (int) Specifies the type of price. Pass the field value into TickType.getField(int tickType)
-                    to retrieve the field description.  For example, a field value of 0 will map to bidSize,
-                    a field value of 3 will map to askSize, etc.
+        field (int)    Specifies the type of price. Pass the field value into TickType.getField(int tickType)
+                       to retrieve the field description. For example, a field value of 0 will map to bidSize,
+                       a field value of 3 will map to askSize, etc.
 
-                    0 = bid size
-                    3 = ask size
-                    5 = last size
-                    8 = volume
+                       0 = bid size
+                       3 = ask size
+                       5 = last size
+                       8 = volume
 
         size (int) Specifies the size for the specified field
         :param msg: tickSize message
@@ -134,17 +138,30 @@ class IBDataHandler(DataHandler, IBConnection):
                         0 = not eligible for automatic execution
                         1 = eligible for automatic execution
         :param msg: tickPrice message
-        :return:
+        :return: (MarketEvent)
         """
         delayed_price_fields = {
-            66: 'bid_price',
-            67: 'ask_price',
-            68: 'foo',
-            75: 'last_price',
-            72: 'high_price',
-            73: 'low_price',
-            76: 'close_price',
+            1: 'bid_price',
+            2: 'ask_price',
+            4: 'last_price',
+            6: 'high_price',
+            7: 'low_price',
+            9: 'close_price',
         }
         price = msg['price']
         self.last_tick[delayed_price_fields[msg['field']]] = price
         return MarketEvent(None)
+
+    def _handle_tick_generic(self, msg):
+        """
+        This method is called when the market data changes. Values are updated immediately with no delay.
+        tickerId (int)	The ticker Id that was specified previously in the call to reqMktData()
+        tickType (int)  Specifies the type of price.
+                        Pass the field value into TickType.getField(int tickType) to retrieve the field description.
+                        For example, a field value of 46 will map to shortable, etc.
+        value (double)  The value of the specified field
+
+        :param msg: tickGeneric message
+        :return:
+        """
+        pass

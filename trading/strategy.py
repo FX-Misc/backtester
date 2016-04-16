@@ -17,18 +17,12 @@ class Strategy(object):
         self.events = events
         self.data = data
         self.products = products
-
         self.curr_dt = None
         self.positions = {product.symbol: 0 for product in self.products}
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.curr_pnl = 0
         self.last_bar = None
-
-        mkt_price_columns = [product.symbol+'_mkt' for product in self.products]
-        position_columns = [product.symbol+'_pos' for product in self.products]
-        columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
-        self.time_series = pd.DataFrame(data=None, columns=columns)
         self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
         # self.initialize(*args, **kwargs)
         # logFormatter = logging.Formatter("%(asctime)s %(message)s")
@@ -112,6 +106,12 @@ class Strategy(object):
 class FuturesStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=0, continuous=True):
         super(FuturesStrategy, self).__init__(events, data, products, initial_cash)
+        mkt_price_columns = [product.symbol+'_mkt_bid' for product in self.products] + \
+                            [product.symbol+'_mkt_ask' for product in self.products]
+        position_columns = [product.symbol+'_pos' for product in self.products]
+        columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
+        self.time_series = pd.DataFrame(data=None, columns=columns)
+
 
     def new_tick_update(self, market_event):
         """
@@ -122,6 +122,10 @@ class FuturesStrategy(Strategy):
             - positions series
         """
         self.last_bar = self.data.get_latest(n=1)
+        _mkt_bids = [self.last_bar[product.symbol]['level_1_price_buy'] for product in self.products]
+        _mkt_asks = [self.last_bar[product.symbol]['level_1_price_sell'] for product in self.products]
+        _positions = [self.positions[product.symbol] for product in self.products]
+        self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_bids + _mkt_asks + _positions + [self.cash]
         # for product in self.products:
         #     # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
         #     mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
@@ -131,13 +135,17 @@ class FuturesStrategy(Strategy):
         #     # self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
 
     def finished(self):
-        pass
+        self.time_series.set_index('dt', inplace=True)
 
 
 class StockStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=1000000, price_field='Open'):
         super(StockStrategy, self).__init__(events, data, products, initial_cash)
         self.price_field = price_field
+        mkt_price_columns = [product.symbol+'_mkt' for product in self.products]
+        position_columns = [product.symbol+'_pos' for product in self.products]
+        columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
+        self.time_series = pd.DataFrame(data=None, columns=columns)
 
     def new_tick_update(self, market_event):
         self.curr_dt = market_event.dt

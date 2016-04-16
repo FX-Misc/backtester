@@ -1,6 +1,7 @@
 from ib.ext.Contract import Contract
 
-def create_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX', currency='USD'):
+
+def create_ib_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX', currency='USD'):
     """
     Creates a futures contract used for IB orders.
     :param symbol: (string) base symbol e.g. 'CL'
@@ -11,9 +12,7 @@ def create_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX'
     :param currency:
     :return:
     """
-
     # TODO: create IBContract class
-
     exp_month = str(exp_month)
     if len(exp_month) == 1:
         exp_month = '0' + exp_month
@@ -26,7 +25,6 @@ def create_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX'
     contract.m_expiry = expiry
     contract.m_exchange = exchange
     contract.m_currency = 'USD'
-
     return contract
 
 def get_contract_details(contract):

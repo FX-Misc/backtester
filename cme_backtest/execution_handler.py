@@ -20,7 +20,7 @@ LIMIT_FILL_PROBABILITY = 0.1
 
 
 class CMEBacktestExecutionHandler(ExecutionHandler):
-    def __init__(self, products, events, second_bars=True, commission=None):
+    def __init__(self, events, products, second_bars=True, commission=None):
         super(CMEBacktestExecutionHandler, self).__init__(events)
         self.products = products
         self.symbols = [product.symbol for product in self.products]
@@ -32,7 +32,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         if len(self.symbols) > 1:
             self.multi_data = True
 
-    def process_order(self, order_event):
+    def process_new_order(self, order_event):
         """
         Updates the current_day_data and places the order.
         """

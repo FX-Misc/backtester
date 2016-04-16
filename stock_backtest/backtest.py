@@ -48,11 +48,9 @@ class StockBacktest(Backtest):
         self.execution.process_resting_orders(market_event)
 
     def _handle_order_event(self, order_event):
-        self.execution.process_order(order_event)
-        # self.logger.info(json.dumps(order_event.info()))
+        self.execution.process_new_order(order_event)
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill_update(fill_event)
         self.strategy.new_fill(fill_event)
-        # self.logger.info(json.dumps(fill_event.info()))
 
