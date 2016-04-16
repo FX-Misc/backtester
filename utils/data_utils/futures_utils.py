@@ -1,7 +1,10 @@
+import os
 import csv
 import datetime as dt
 import Quandl as qd
 from dateutil.relativedelta import relativedelta
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 QUANDL_KEY = "SyH7V4ywJGho77EC6W7C"
 MONTH_CODES = {
@@ -109,7 +112,7 @@ def get_contract_specs(symbol):
     :param symbol:
     :return:
     """
-    reader = csv.DictReader(open('contract_specs.csv'))
+    reader = csv.DictReader(open(os.path.join(__location__, 'contract_specs.csv')))
     contracts = {}
     for row in reader:
         k = row['Symbol']

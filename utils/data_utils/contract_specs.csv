@@ -1,4 +1,4 @@
-Symbol,Exchange,Quandl Code,Name,Session Type,Active,Terminal Point Value,Full Point Value,Currency,Contract Size,Units,Minimum Tick Value,Tick Value,Delievery Months,Start Date,Trading Times,Additional Notes,
+Symbol,Exchange,Quandl Code,Name,Session Type,Active,Terminal Point Value,Full Point Value,Currency,Contract Size,Units,Minimum Tick Value,Tick Value,Delivery Months,Start Date,Trading Times,Additional Notes,
 0D,CME,CME/0D,Mini European 3.5% Fuel Oil Barges FOB Rdam (Platts),Active,1,0.1,100,USD,100 metric tons,$/metric ton,1,0.1,FGHJKMNQUVXZ,3/22/2011,18:00 - 17:15,,
 6T,CME,CME/6T,In Delivery Month EUA,Active,1,10,1000,EUR,1000 tonnes,EUR/tonne,1,10,HMUZ,10/30/2013,18:00 - 17:15,,
 6Z,CME,CME/6Z,Tennessee 800 Basis,Active,1,0.25,2500,USD,2500 mmBTU,USD/mmBTU,25,6.25,JKUVX,3/22/2011,18:00 - 17:15,,

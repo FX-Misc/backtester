@@ -16,11 +16,11 @@ class CMEBacktestFillEvent(events.FillEvent):
                     self.commission)
 
 
-class CMEBacktestOrderEvent(events.OrderEvent):
-    def __init__(self, symbol, datetime, order_type, quantity, price=None):
-        super(CMEBacktestOrderEvent, self).__init__(symbol, order_type, quantity, price)
-        self.datetime = datetime
-
-    def __str__(self):
-        return "ORDER | Symbol: {}, Time: {}, Qty: {}, Type: {}"\
-            .format(self.symbol, self.datetime, self.quantity, self.order_type)
+# class CMEBacktestOrderEvent(events.OrderEvent):
+#     def __init__(self, symbol, datetime, order_type, quantity, price=None):
+#         super(CMEBacktestOrderEvent, self).__init__(symbol, order_type, quantity, price)
+#         self.datetime = datetime
+#
+#     def __str__(self):
+#         return "ORDER | Symbol: {}, Time: {}, Qty: {}, Type: {}"\
+#             .format(self.symbol, self.datetime, self.quantity, self.order_type)

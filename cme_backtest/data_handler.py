@@ -15,6 +15,7 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         super(CMEBacktestDataHandler, self).__init__(events, symbols, start_date, end_date,
                                                      start_time=start_time, end_time=end_time)
         self.second_bars = second_bars
+        # self.latest_data = {symbol: None for symbol in self.symbols}
         self.latest_data = None
         self.curr_day = dt.datetime(year=start_date.year, month=start_date.month, day=start_date.day)
         self.curr_day_data = None
@@ -40,9 +41,11 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         """
         Return latest data.
         """
-        latest_data = self.latest_data
+        # print 'get_latest', self.curr_day, self.curr_day_index
+        _latest_data = self.latest_data
         self.latest_data = None
-        return latest_data
+
+        return {self.symbol: _latest_data}
 
     def update(self):
         if self.curr_day > self.end_date:
@@ -50,7 +53,7 @@ class CMEBacktestDataHandler(BacktestDataHandler):
             return
         try:
             self._push_next_data()
-        except IndexError:
+        except (IndexError, AttributeError):
             self.curr_day += dt.timedelta(days=1)
             self._load_day_data()
             self.update()

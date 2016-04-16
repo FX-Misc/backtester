@@ -1,3 +1,4 @@
+import datetime as dt
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
@@ -46,14 +47,13 @@ class MarketEvent(Event):
 class OrderEvent(Event):
     """
     Handles the event of sending an Order to an execution system.
-    :param datetime: (DateTime) order time
+    :param order_time: (DateTime) order time
     :param symbol: (str)
     :param order_type: (str) 'MARKET', 'LIMIT'
     :param quantity: (int)
     :param price: (float)
     """
-    def __init__(self, order_time, symbol, quantity, order_type='MARKET', price=None):
-        self.order_time = order_time
+    def __init__(self, symbol, quantity, order_type='MARKET', price=None, order_time=None):
         self.type = 'ORDER'
         self.symbol = symbol
         assert order_type is 'MARKET' or order_type is 'LIMIT'
@@ -66,6 +66,8 @@ class OrderEvent(Event):
                 self.price = float(self.price)
             except TypeError:
                 print "LIMIT order has invalid price."
+
+        self.order_time = order_time if order_time is not None else dt.datetime.now()
 
     def info(self):
         return {

@@ -29,7 +29,7 @@ class Strategy(object):
         position_columns = [product.symbol+'_pos' for product in self.products]
         columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
         self.time_series = pd.DataFrame(data=None, columns=columns)
-        self.transactions = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
+        self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
         # self.initialize(*args, **kwargs)
         # logFormatter = logging.Formatter("%(asctime)s %(message)s")
         # fileHandler = logging.FileHandler('output/strategy_log', mode='w')
@@ -72,8 +72,8 @@ class Strategy(object):
         """
         self.positions[fill_event.symbol] += fill_event.quantity
         self.cash -= fill_event.fill_cost
-        self.transactions.loc[len(self.transactions)] = [fill_event.fill_time, fill_event.quantity,
-                                                         fill_event.fill_price, fill_event.symbol]
+        self.transactions_series.loc[len(self.transactions_series)] = [fill_event.fill_time, fill_event.quantity,
+                                                                       fill_event.fill_price, fill_event.symbol]
 
     @abstractmethod
     def new_fill(self, fill_event):
@@ -109,10 +109,9 @@ class Strategy(object):
     #     raise NotImplementedError("new_day()")
 
 
-
 class FuturesStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=0, continuous=True):
-        super(FuturesStrategy, self).__init__(events, data, products)
+        super(FuturesStrategy, self).__init__(events, data, products, initial_cash)
 
     def new_tick_update(self, market_event):
         """
@@ -123,13 +122,13 @@ class FuturesStrategy(Strategy):
             - positions series
         """
         self.last_bar = self.data.get_latest(n=1)
-        for product in self.products:
-            # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
-            mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
-            pnl_ = self.cash + sum([self.positions[product.symbol] * product.tick_value * (self.last_bar[product.symbol]['level_1_price_buy']
-                                    if self.positions[product.symbol] < 0
-                                    else self.last_bar['level_1_price_sell']) for product.symbol in self.products])
-            # self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
+        # for product in self.products:
+        #     # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
+        #     mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
+        #     pnl_ = self.cash + sum([self.positions[product.symbol] * product.tick_value * (self.last_bar[product.symbol]['level_1_price_buy']
+        #                             if self.positions[product.symbol] < 0
+        #                             else self.last_bar['level_1_price_sell']) for product.symbol in self.products])
+        #     # self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
 
     def finished(self):
         pass
@@ -147,30 +146,21 @@ class StockStrategy(Strategy):
         _positions = [self.positions[product.symbol] for product in self.products]
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_prices + _positions + [self.cash]
 
-    def get_positions(self):
-        positions_cols = [product.symbol for product in self.products] + ['cash']
-        positions = pd.DataFrame(np.array([self.time_series[product.symbol] for product in self.products] +
-                                          [self.time_series['cash']]
-                                          ).transpose(),
-                                 columns=positions_cols,
-                                 index=self.time_series.index)
-        return positions
-
-    def get_returns(self):
-        return self.time_series['total_val'].pct_change().fillna(0)
 
     def finished(self, save=False):
         for product in self.products:
             self.time_series[product.symbol] = self.time_series[product.symbol+'_pos']*\
-                                                      self.time_series[product.symbol+'_mkt']
+                                               self.time_series[product.symbol+'_mkt']
+
         self.time_series['total_val'] = np.sum(self.time_series[product.symbol] for product in self.products) \
-                                  + self.time_series['cash']
+                                        + self.time_series['cash']
         self.time_series.set_index('dt', inplace=True)
-        self.transactions.set_index('dt', inplace=True)
+        self.transactions_series.set_index('dt', inplace=True)
+        self.returns_series = self.time_series['total_val'].pct_change().fillna(0)
 
-
-        # positions timeseries
-        positions_cols = [product.symbol+'_val' for product in self.products] + ['cash']
-        self.positions = pd.DataFrame(np.array([self.time_series[product.symbol+'_val'] for product in self.products]
-                                          + [self.time_series['cash']]).transpose(),
-                                 columns=positions_cols,index=self.time_series.index)
+        positions_cols = [product.symbol for product in self.products] + ['cash']
+        self.positions_series = pd.DataFrame(np.array([self.time_series[product.symbol] for product in self.products] +
+                                              [self.time_series['cash']]
+                                             ).transpose(),
+                                             columns=positions_cols,
+                                             index=self.time_series.index)

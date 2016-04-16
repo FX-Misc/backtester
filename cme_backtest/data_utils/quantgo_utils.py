@@ -88,7 +88,6 @@ def get_data(symbol, date, download=False, save=True, parse_new=False, second_ba
     fpath = get_file_path(symbol, date, subscription)
     parsed_fpath = get_file_path(symbol, date, subscription, extension='_parsed')
     second_fpath = get_file_path(symbol, date, subscription, extension='_second_bars')
-
     if second_bars and os.path.exists(second_fpath):
         data = pd.read_csv(second_fpath, parse_dates=[0], index_col=[0])
     else:

@@ -1,7 +1,8 @@
 import logging
 import json
 from abc import ABCMeta, abstractmethod
-from multiprocessing.pool import ThreadPool
+from multiprocessing.pool import Pool
+import multiprocessing
 
 class Backtest(object):
 
@@ -29,14 +30,22 @@ class Backtest(object):
 
     __metaclass__ = ABCMeta
 
+
     def run(self):
         """
         Run the backtest.
         """
         self._log_backtest_info()
-        pool = ThreadPool(processes=1)
-        async_result = pool.apply_async(self.event_handler)
-        return async_result.get()
+        # pool = ThreadPool(processes=1)
+        # async_result = pool.apply_async(self.event_handler)
+        # return async_result.get()
+
+        pool = Pool(processes=2)
+        names = ('frank', 'justin', 'osi', 'thomas')
+        # pool.map(unwrap_self_f, zip([self]*len(names), names))
+
+
+        self.event_handler()
 
     def finished(self):
         self.analytics.run()
@@ -47,12 +56,6 @@ class Backtest(object):
         raise NotImplementedError('Backtest.event_handler()')
 
     def _log_backtest_info(self):
-        info = {
-            'STRATEGY': self.strategy.__class__.__name__,
-            'EXECUTION': self.execution.__class__.__name__,
-            'START': self.start_date.strftime("%-m/%-d/%Y %H:%M"),
-            'END': self.end_date.strftime("%-m/%-d/%Y %H:%M"),
-        }
         print 'STARTING BACKTEST \n' \
               'Strategy: {} \n' \
               'Execution: {} \n' \

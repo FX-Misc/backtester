@@ -9,8 +9,8 @@ class StockBacktestDataHandler(BacktestDataHandler):
         Handles data for (one) stock using pandas/yahoo finance API.
         :param events: (Queue)
         :param symbols: (list)
-        :param start_date: (datetime)
-        :param end_date: (datetime)
+        :param start_date: (DateTime)
+        :param end_date: (DateTime)
         :return:
         """
         super(StockBacktestDataHandler, self).__init__(events, symbols, start_date, end_date)
