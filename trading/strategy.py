@@ -108,8 +108,6 @@ class Strategy(object):
     #     """
     #     raise NotImplementedError("new_day()")
 
-    def get_positions(self):
-        pass
 
 
 class FuturesStrategy(Strategy):
@@ -158,3 +156,10 @@ class StockStrategy(Strategy):
         self.time_series['returns'] = self.time_series['total_val'].pct_change().fillna(0)
         self.time_series.set_index('dt', inplace=True)
         self.transactions.set_index('dt', inplace=True)
+
+
+        # positions timeseries
+        positions_cols = [product.symbol+'_val' for product in self.products] + ['cash']
+        self.positions = pd.DataFrame(np.array([self.time_series[product.symbol+'_val'] for product in self.products]
+                                          + [self.time_series['cash']]).transpose(),
+                                 columns=positions_cols,index=self.time_series.index)

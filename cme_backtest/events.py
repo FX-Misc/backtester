@@ -5,9 +5,9 @@ class CMEBacktestMarketEvent(events.MarketEvent):
         super(CMEBacktestMarketEvent, self).__init__(dt)
 
 class CMEBacktestFillEvent(events.FillEvent):
-    def __init__(self, order_time, fill_time, symbol, quantity, fill_cost, commission=0):
-        super(CMEBacktestFillEvent, self).__init__(fill_time, symbol, exchange='CMEBacktest', quantity=quantity,
-                                                   fill_cost=fill_cost, commission=commission)
+    def __init__(self, order_time, fill_time, symbol, quantity, fill_price, fill_cost, commission=0):
+        super(CMEBacktestFillEvent, self).__init__(fill_time, symbol, quantity, fill_price, fill_cost,
+                                                   exchange='CMEBacktest', commission=commission)
         self.order_time = order_time
 
     def __str__(self):

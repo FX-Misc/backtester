@@ -148,7 +148,8 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
     def create_fill_event(self, order_event, fill_price, fill_time):
         fill_cost = float(order_event.quantity*fill_price)
         fill_event = CMEBacktestFillEvent(order_event.datetime, fill_time, order_event.symbol,
-                                          order_event.quantity, fill_cost, commission=self.commission)
+                                          order_event.quantity, fill_price, fill_cost,
+                                          commission=self.commission)
         # log.info(fill_event)
         self.events.put(fill_event)
 
