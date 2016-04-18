@@ -27,6 +27,3 @@ class TestIBDataHandler(unittest.TestCase):
             self.assertGreater(last_tick[self.gold_symbol]['level_1_price_sell'],
                                last_tick[self.gold_symbol]['level_1_price_buy'])
             time.sleep(1)
-
-if __name__ == "__main__":
-    unittest.main()

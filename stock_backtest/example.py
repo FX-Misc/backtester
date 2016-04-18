@@ -16,4 +16,3 @@ execution = StockBacktestExecutionHandler(events)
 strategy = BuyStrategy(events, data, products, initial_cash=100000)
 backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
 backtest.run()
-# session.loop_until_closed() # run forever

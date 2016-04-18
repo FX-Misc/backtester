@@ -25,5 +25,7 @@ class FuturesContract(object):
         self.terminal_point_value = ['Terminal Point Value']
 
         self.ib_contract = create_ib_futures_contract(self.base_symbol,
-                                                      exp_month=self.exp_month, exp_year=self.exp_year,
-                                                      exchange=self.exchange, currency=self.currency)
+                                                      exp_month=self.exp_month,
+                                                      exp_year=self.exp_year,
+                                                      exchange=self.exchange,
+                                                      currency=self.currency)

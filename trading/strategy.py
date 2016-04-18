@@ -113,7 +113,7 @@ class FuturesStrategy(Strategy):
             - positions series
         """
         self.curr_dt = market_event.dt
-        self.last_bar = self.data.copy()
+        self.last_bar = self.data.last_bar.copy()
         _mkt_bids = [self.last_bar[product.symbol]['level_1_price_buy'] for product in self.products]
         _mkt_asks = [self.last_bar[product.symbol]['level_1_price_sell'] for product in self.products]
         _positions = [self.positions[product.symbol] for product in self.products]

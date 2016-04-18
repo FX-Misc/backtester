@@ -9,7 +9,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBConnection')
 
-# TODO: handle canceled orders
 
 class IBConnection(object):
 

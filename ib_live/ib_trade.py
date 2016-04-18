@@ -1,16 +1,10 @@
+import time
 import json
 from strategies.buy_strategy_futures import BuyStrategy
 from ib_live.ib_data_handler import IBDataHandler
 from ib_live.ib_execution_handler import IBExecutionHandler
 from queue import Queue, Empty
 from trading.futures_contract import FuturesContract
-
-IB_CONFIG = json.load(open('test_ib_config.json', 'r'))
-events = Queue()
-products = [FuturesContract('GC', exp_year=2016, exp_month=6)]
-data = IBDataHandler(events, IB_CONFIG)
-execution = IBExecutionHandler(events, IB_CONFIG)
-strategy = BuyStrategy(events, data, products)
 
 class IBTrade(object):
     def __init__(self, events, strategy, data, execution, **kwargs):
@@ -23,7 +17,6 @@ class IBTrade(object):
     def run(self):
         self._log_trading_info()
         self.event_handler()
-        # do necessary checks
 
     def event_handler(self):
         event_handlers = {
@@ -49,19 +42,30 @@ class IBTrade(object):
 
     def _handle_market_event(self, market_event):
         self.strategy.new_tick_update(market_event)
-        self.strategy.new_tick(market_event)
+        self.strategy.new_tick()
 
     def _handle_order_event(self, order_event):
         self.execution.process_new_order(order_event)
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill_update(fill_event)
-        self.strategy.new_fill(fill_event)
+        self.strategy.new_fill()
 
 
     def _log_trading_info(self):
-        print "STARTING TRADING \n " \
-              "Strategy: {} \n \ " \
+        print "STARTING TRADING \n" \
+              "Strategy: {} \n" \
               "Execution: {} \n"\
             .format(self.strategy.__class__.__name__,
                     self.execution.__class__.__name__)
+
+
+IB_CONFIG = json.load(open('test_ib_config.json', 'r'))
+events = Queue()
+products = [FuturesContract('GC', exp_year=2016, exp_month=6)]
+data = IBDataHandler(events, products, IB_CONFIG)
+execution = IBExecutionHandler(events, IB_CONFIG)
+strategy = BuyStrategy(events, data, products)
+ib_trade = IBTrade(events, strategy, data, execution)
+time.sleep(5)
+ib_trade.run()

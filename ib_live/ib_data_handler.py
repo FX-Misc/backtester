@@ -18,7 +18,7 @@ class IBDataHandler(DataHandler, IBConnection):
         self.client_id = config['DATA_CLIENT_ID']
         DataHandler.__init__(self, self.events)
         IBConnection.__init__(self, self.events, self.port, self.client_id)
-        self._initialize_fields_handlers()
+        self._initialize_handlers()
 
         self.curr_dt = dt.datetime.now()
         self.last_bar = {product.symbol: {} for product in self.products}
@@ -38,10 +38,22 @@ class IBDataHandler(DataHandler, IBConnection):
 
         log.info("IBDataHandler initialized!")
 
-    def _initialize_fields_handlers(self):
+    def _initialize_handlers(self):
+
+        self.reply_handlers = {
+            'error': super(IBDataHandler, self).handle_error_msg,
+            'connectionClosed': super(IBDataHandler, self).handle_connection_closed_msg,
+            'managedAccounts': super(IBDataHandler, self).handle_managed_accounts_msg,
+            'nextValidId': super(IBDataHandler, self).handle_next_valid_id_msg,
+            'tickPrice': self._handle_tick_price,
+            'tickSize': self._handle_tick_size,
+            'tickGeneric': self._handle_tick_generic,
+            'tickString': self._handle_tick_string,
+        }
+
         self.price_fields = {
-            1:  'level_1_price_buy',  # 'bid_price',
-            2:  'level_1_price_sell', # 'ask_price',
+            1:  'level_1_price_buy',   # 'bid_price',
+            2:  'level_1_price_sell',  # 'ask_price',
             # 4:  'last_price',
             # 6:  'high_price',
             # 7:  'low_price',
@@ -88,37 +100,22 @@ class IBDataHandler(DataHandler, IBConnection):
         self.connection.reqMarketDataType(1)  # type 1 is for live data
         self.connection.reqMktData(ticker_id, contract, "", False)
 
-    def get_latest(self, n=1):
-        return self.last_bar
-
     def update(self):
-        pass
+        self.events.put(MarketEvent(self.curr_dt, self.last_bar))
 
     def _reply_handler(self):
         """
         Handle all type of replies from IB in a separate thread.
         :return:
         """
-        reply_handlers = {
-            'error': super(IBDataHandler, self).handle_error_msg,
-            'connectionClosed': super(IBDataHandler, self).handle_connection_closed_msg,
-            'managedAccounts': super(IBDataHandler, self).handle_managed_accounts_msg,
-            'nextValidId': super(IBDataHandler, self).handle_next_valid_id_msg,
-            'tickPrice': self._handle_tick_price,
-            'tickSize': self._handle_tick_size,
-            'tickGeneric': self._handle_tick_generic,
-            'tickString': self._handle_tick_string,
-        }
-
         while True:
             try:
                 msg = self.messages.popleft()
                 try:
                     msg_dict = dict(msg.items())
                     msg_dict['typeName'] = msg.typeName
-                    event = reply_handlers[msg.typeName](msg_dict)  # format message as dict
-                    self.events.put(event)
-                except KeyError, e:
+                    self.reply_handlers[msg.typeName](msg_dict)  # format message as dict
+                except KeyError:
                     # print "{} Need to handle message type: {}".format(repr(e), msg.typeName)
                     pass
             except IndexError:
@@ -142,7 +139,6 @@ class IBDataHandler(DataHandler, IBConnection):
         size = msg['size']
         tick_symbol = self.ticker_ids[msg['tickerId']]
         self.last_bar[tick_symbol][self.size_fields[msg['field']]] = size
-        return MarketEvent(None)
 
     def _handle_tick_price(self, msg):
         """
@@ -168,7 +164,6 @@ class IBDataHandler(DataHandler, IBConnection):
         price = msg['price']
         tick_symbol = self.ticker_ids[msg['tickerId']]
         self.last_bar[tick_symbol][self.price_fields[msg['field']]] = price
-        return MarketEvent(self.curr_dt)
 
     def _handle_tick_generic(self, msg):
         """

@@ -70,6 +70,10 @@ class OrderEvent(Event):
 
         self.order_time = order_time if order_time is not None else dt.datetime.now()
 
+    def __str__(self):
+        return "ORDER | Symbol: {}, Qty: {}, Type: {}, Time: {}"\
+            .format(self.symbol, self.quantity, self.quantity, self.order_type, self.order_time)
+
     def info(self):
         return {
             'dt': self.order_time.strftime("%-m/%-d/%Y %H:%M"),

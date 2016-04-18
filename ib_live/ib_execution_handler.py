@@ -6,9 +6,8 @@ import threading
 from collections import deque
 from ib.ext.Order import Order
 from trading.execution_handler import ExecutionHandler
-from ib_events import IBOrderEvent
 from ib_connection import IBConnection
-from ib_utils import get_contract_details, get_execution_details
+from ib_utils import get_contract_details, get_execution_details, create_ib_futures_contract_from_symbol
 from ib_events import IBFillEvent
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
@@ -33,15 +32,16 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         self.orders = {}
         self.fills = deque()
 
-    def process_new_order(self, order_event, contract=None):
+    def process_new_order(self, order_event):
         """
-        Processes an IBOrderEvent (called from LiveTrade), creates an (ib.ext.Order) and sends it to IB.
+        Processes an IBOrderEvent (called from ), creates an (ib.ext.Order) and sends it to IB.
         LiveTrade fills the contract param.
         :param order_event: (IBOrderEvent)
         :param contract: (ib.ext.Contract)
         """
-        assert (isinstance(order_event, IBOrderEvent)), "Order Event must be an IBOrderEvent"
         order = create_order(order_event.order_type, order_event.quantity, limit_price=order_event.price)
+        # TODO: temp fix.....pass in products for FuturesOrders or IBOrders
+        contract = create_ib_futures_contract_from_symbol(order_event.symbol)
         send = self._send_order(contract, order)
         if send:
             log.info(str(order_event))
@@ -84,6 +84,8 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
                 msg = self.messages.popleft()
                 try:
                     msg_dict = dict(msg.items())
+                    if msg.typeName == 'connectionClosed':
+                        print 'connection closed fk'
                     msg_dict['typeName'] = msg.typeName
                     event = reply_handlers[msg.typeName](msg_dict)  # format message as dict
                     self.events.put(event)

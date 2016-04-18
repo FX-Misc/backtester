@@ -19,9 +19,20 @@ MONTH_CODES = {
     9: 'U',
     10: 'V',
     11: 'X',
-    12: 'Z'
+    12: 'Z',
+    'F': 1,
+    'G': 2,
+    'H': 3,
+    'J': 4,
+    'K': 5,
+    'M': 6,
+    'N': 7,
+    'Q': 8,
+    'U': 9,
+    'V': 10,
+    'X': 11,
+    'Z': 12
 }
-
 
 def get_contract_month_code(exp_month):
     """
@@ -43,6 +54,18 @@ def build_contract(symbol, exp_year, exp_month):
     year = str(exp_year)[-1]
     month = get_contract_month_code(exp_month)
     return symbol + month + year
+
+
+def get_exp_year_from_symbol(symbol):
+    return int('201'+symbol[-1])
+
+
+def get_exp_month_from_symbol(symbol):
+    return MONTH_CODES[symbol[-2]]
+
+
+def get_base_symbol_from_symbol(symbol):
+    return symbol[:-2]
 
 
 def get_quandl_future_code(symbol, exp_year, exp_month):

@@ -1,6 +1,6 @@
 import unittest
 import datetime as dt
-from utils.data_utils import futures_utils as fut
+from utils import futures_utils as fut
 
 
 class TestFutureUtils(unittest.TestCase):
@@ -8,6 +8,7 @@ class TestFutureUtils(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.symbol = 'GC'
+        cls.full_symbol = 'GCM6'
         cls.exp_year = 2016
         cls.exp_month = 5
         cls.curr_year = 2016
@@ -18,6 +19,15 @@ class TestFutureUtils(unittest.TestCase):
         months = ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
         for i in range(12):
             self.assertTrue(fut.get_contract_month_code(i + 1), months[i])
+
+    def test_get_exp_year_from_symbol(self):
+        self.assertEqual(fut.get_exp_year_from_symbol(self.full_symbol), 2016)
+
+    def test_get_exp_month_from_symbol(self):
+        self.assertEqual(fut.get_exp_month_from_symbol(self.full_symbol), 6)
+
+    def test_get_base_symbol_from_symbol(self):
+        self.assertEqual(fut.get_base_symbol_from_symbol(self.full_symbol), 'GC')
 
     def test_build_contract(self):
         contract = fut.build_contract(self.symbol, self.exp_year, self.exp_month)

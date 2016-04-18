@@ -1,5 +1,12 @@
+import utils.futures_utils as fut
 from ib.ext.Contract import Contract
 
+
+def create_ib_futures_contract_from_symbol(symbol):
+    exp_year = fut.get_exp_year_from_symbol(symbol)
+    exp_month = fut.get_exp_month_from_symbol(symbol)
+    base_symbol = fut.get_base_symbol_from_symbol(symbol)
+    return create_ib_futures_contract(base_symbol, exp_month, exp_year)
 
 def create_ib_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX', currency='USD'):
     """

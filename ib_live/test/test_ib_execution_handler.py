@@ -3,10 +3,11 @@ import time
 import unittest
 import datetime as dt
 from queue import Queue
+from trading.events import OrderEvent
 from trading.futures_contract import FuturesContract
 from ib_live.ib_execution_handler import IBExecutionHandler
 from ib_live.ib_utils import create_ib_futures_contract
-from ib_live.ib_events import IBOrderEvent, IBFillEvent
+from ib_live.ib_events import IBFillEvent
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))
 
@@ -17,12 +18,12 @@ class TestIBExecutionHandler(unittest.TestCase):
         cls.events = Queue()
         cls.execution = IBExecutionHandler(cls.events, CONFIG)
         cls.contract = FuturesContract('GC', exp_year=2016, exp_month=6)
-        while(cls.execution.next_valid_order_id is -1):
+        while cls.execution.next_valid_order_id is -1:
             time.sleep(.1)
 
-    def test_process_order(self):
+    def test_process_new_order(self):
         contract = self.contract.ib_contract
-        order_event = IBOrderEvent('GC', 1, 'MARKET', price=None, order_time=None)
+        order_event = OrderEvent('GC', 1, 'MARKET', price=None, order_time=None)
         self.execution.process_new_order(order_event, contract)
         time.sleep(.5)
         fill = self.execution.fills.popleft()
