@@ -22,7 +22,6 @@ class CMEBacktest(Backtest):
                 self.strategy.finished()
                 print 'strategy finished'
                 return
-                # break
             while True:
                 try:
                     event = self.events.get(False)
@@ -34,7 +33,7 @@ class CMEBacktest(Backtest):
 
     def _handle_market_event(self, market_event):
         self.strategy.new_tick_update(market_event)
-        self.strategy.new_tick(market_event)
+        self.strategy.new_tick()
         self.execution.process_resting_orders(market_event)
 
     def _handle_order_event(self, order_event):
@@ -42,4 +41,4 @@ class CMEBacktest(Backtest):
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill_update(fill_event)
-        self.strategy.new_fill(fill_event)
+        self.strategy.new_fill()

@@ -16,21 +16,13 @@ class DataHandler(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, events):
+    def __init__(self, events, **kwargs):
         self.events = events
-
-    @abstractmethod
-    def get_latest(self, n=1):
-        """
-        Returns the last N bars from the latest_data list, or fewer if less bars are available.
-        :return: (DataFrame)
-        """
-        raise NotImplementedError("DataHandler.get_latest_bars()")
 
     @abstractmethod
     def update(self):
         """
-        Pushes the latest bar to the latest symbol structure for all symbols in the symbol list.
+        Updates self.last_tick
         Also should send a MarketEvent to the queue.
         """
         raise NotImplementedError("DataHandler.update_bars()")

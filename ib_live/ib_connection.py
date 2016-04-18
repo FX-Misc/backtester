@@ -79,7 +79,7 @@ class IBConnection(object):
             103:  error_msg,  # error_msg + ': ' + str(error_id)  # Duplicate order id
             200:  error_msg,  # No security definition has been found for the request.
             510:  error_msg,  # Request market data - sending error:
-            399:  error_msg.replace('\n', '|'),  # Order message
+            399:  error_msg #.replace('\n', '|'),  # Order message
         }
 
         try:

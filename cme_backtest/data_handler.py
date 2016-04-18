@@ -1,6 +1,6 @@
 import logging
 import datetime as dt
-from events import CMEBacktestMarketEvent
+from trading.events import MarketEvent
 from trading.data_handler import BacktestDataHandler
 from cme_backtest.data_utils.quantgo_utils import get_data, get_data_multi
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
@@ -17,8 +17,7 @@ class CMEBacktestDataHandler(BacktestDataHandler):
                                                      start_time=start_time,
                                                      end_time=end_time)
         self.second_bars = second_bars
-        # self.latest_data = {symbol: None for symbol in self.symbols}
-        self.latest_data = None
+        self.last_bar = None
         self.curr_day = dt.datetime(year=start_date.year, month=start_date.month, day=start_date.day)
         self.curr_day_data = None
         self.curr_day_index = 0
@@ -39,19 +38,10 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         except ValueError:
             pass
 
-    def get_latest(self, n=1):
-        """
-        Return latest data.
-        """
-        # print 'get_latest', self.curr_day, self.curr_day_index
-        _latest_data = self.latest_data
-        self.latest_data = None
-
-        return {self.symbol: _latest_data}
 
     def update(self):
-        if self.curr_day_index % 200 == 0:
-            print self.curr_day, self.curr_day_index
+        # if self.curr_day_index % 200 == 0:
+        #     print self.curr_day, self.curr_day_index
         if self.curr_day > self.end_date:
             self.continue_backtest = False
             return
@@ -66,11 +56,6 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         """
         Push the next tick from curr_day_data to latest_data (for all symbols).
         """
-        self.latest_data = self.curr_day_data.ix[self.curr_day_index]
+        self.last_bar = self.curr_day_data.ix[self.curr_day_index]
         self.curr_day_index += 1
-        self.events.put(CMEBacktestMarketEvent(self.latest_data['datetime']))
-
-    # def listener(self, q):
-    #     while True:
-    #         event = q.get()
-    #         print "(Add to DB)"
+        self.events.put(MarketEvent(self.last_bar['datetime'], self.last_bar))

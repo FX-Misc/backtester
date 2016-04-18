@@ -24,9 +24,10 @@ class MarketEvent(Event):
     """
     Handles the event of receiving a new market update.
     """
-    def __init__(self, dt):
+    def __init__(self, dt, data):
         self.type = 'MARKET'
         self.dt = dt
+        self.data = data
 
     def info(self):
         return None
@@ -56,11 +57,11 @@ class OrderEvent(Event):
     def __init__(self, symbol, quantity, order_type='MARKET', price=None, order_time=None):
         self.type = 'ORDER'
         self.symbol = symbol
-        assert order_type is 'MARKET' or order_type is 'LIMIT'
+        assert order_type == 'MARKET' or order_type == 'LIMIT'
         self.order_type = order_type
         self.quantity = quantity
         self.price = price
-        if order_type is 'LIMIT':
+        if order_type == 'LIMIT':
             assert price is not None, "LIMIT order must have a price."
             try:
                 self.price = float(self.price)

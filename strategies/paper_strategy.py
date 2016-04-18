@@ -6,22 +6,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Portfolio')
 
 from queue import Queue
-import json
 import datetime as dt
-import pandas as pd
 import numpy as np
-from sklearn import linear_model
-from sklearn.externals import joblib
-from hashlib import md5
-import time
 import prediction.features as feats
+from trading.futures_contract import FuturesContract
 from cme_backtest.data_handler import CMEBacktestDataHandler
 from trading.strategy import Strategy
 from cme_backtest.execution_handler import CMEBacktestExecutionHandler
 from cme_backtest.backtest import CMEBacktest
-from cme_backtest.data_utils.quantgo_utils import get_data_furdays
-import prediction.featutils as featutils
-from plotting.plot import plot_backtest, FIGS_DIR
 
 NOT_UPDATING_FEATURES = False
 BACKTEST_NAME = None
@@ -35,7 +27,6 @@ x_feats = [
     feats.mean_reversion_signal(hl, window),
     feats.ema_diff(window/2)
 ]
-drop_cols = featutils.drop_orderbook(min_keep_level=1, depth=5)
 
 class ClassifierStrategy(Strategy):
 
@@ -164,21 +155,6 @@ class ClassifierStrategy(Strategy):
             self.total_signals[sym] += self.signals[sym]
             self.total_probs[sym] += self.probs[sym]
 
-        backtest_dir = os.path.join('forwardtests',
-                            "_".join(self.symbols),
-                            "{}_{}".format(self.start_date.strftime("%Y_%m_%d"), self.end_date.strftime("%Y_%m_%d")),
-                            RUN_TIME.strftime("%Y_%m_%d_%h_%M_%s")
-                            if BACKTEST_NAME is None else BACKTEST_NAME)
-
-        plot_backtest(os.path.join(backtest_dir,
-                                   'forwardtest_results_{}'.format(
-                                       (dt.datetime.utcfromtimestamp(newday_event.prev_date.tolist()/1e9)).strftime("%Y_%m_%d"))),
-                      self.time_series,
-                      self.price_series[self.symbols[0]],
-                      self.pnl,
-                      self.orders[self.symbols[0]],
-                      self.signals[self.symbols[0]],
-                      self.probs[self.symbols[0]])
 
         self.time_series = []
         self.pnl = []
@@ -200,49 +176,6 @@ class ClassifierStrategy(Strategy):
                      self.transaction_costs[sym] * abs(fill_event.quantity) - \
                      self.contract_multiplier[sym] * abs(fill_event.quantity) * self.slippage
         self.orders[sym].append((self.cur_time, fill_event.quantity, self.pos[sym], abs(fill_event.fill_cost / float(fill_event.quantity))))
-
-    def finished(self):
-        log_returns = np.diff(np.log(self.daily_pnl))
-        sharpe = np.sqrt(252) * (np.mean(log_returns) / np.std(log_returns))
-        max_drawdown = np.min(
-            [np.min(np.array(self.daily_pnl)[i:] - np.array(self.daily_pnl)[:-i])
-             for i in xrange(1, len(self.daily_pnl))])
-        print "Sharpe ratio = {}".format(sharpe)
-        print "Max drawdown = {}".format(max_drawdown)
-
-        info_fpath = self._build_forwardtest_fpath('info.json')
-
-        with open(info_fpath, 'w') as f:
-            info = {
-                'closing_time': str(self.closing_time),
-                'min_hold': str(self.min_hold_time),
-                'max_hold': str(self.max_hold_time),
-                'slippage': self.slippage,
-                'standardize': self.standardize,
-                'starting_cash': self.starting_cash,
-                'sharpe': sharpe,
-                'pnl': self.total_pnl[-1],
-                'daily_pnl': self.daily_pnl,
-                'max_drawdown': max_drawdown,
-                'orders': sum([len(self.total_orders[s]) for s in self.symbols]),
-                'longs': sum([len(filter(lambda x: (x[1] > 0) and (x[2] != 0), self.total_orders[s])) for s in self.symbols]),
-                'shorts': sum([len(filter(lambda x: (x[1] < 0) and (x[2] != 0), self.total_orders[s])) for s in self.symbols])
-            }
-            f.write(json.dumps(info))
-
-        backtest_dir = os.path.join('forwardtests',
-                                    "_".join(self.symbols),
-                                    "{}_{}".format(self.start_date.strftime("%Y_%m_%d"), self.end_date.strftime("%Y_%m_%d")),
-                                    RUN_TIME.strftime("%Y_%m_%d_%h_%M_%s")
-                                    if BACKTEST_NAME is None else BACKTEST_NAME)
-
-        plot_backtest(os.path.join(backtest_dir, 'forwardtest_results_full'),
-                      self.total_time_series,
-                      self.total_price_series[self.symbols[0]],
-                      self.total_pnl,
-                      self.total_orders[self.symbols[0]],
-                      self.total_signals[self.symbols[0]],
-                      self.total_probs[self.symbols[0]])
 
     def update_metrics(self):
         last_bar = self.data.get_latest_bars(n=1)
@@ -270,18 +203,7 @@ class ClassifierStrategy(Strategy):
         """
 
     def _build_forwardtest_fpath(self, fname):
-        backtest_dir = os.path.join('forwardtests',
-                                    "_".join(self.symbols),
-                                    "{}_{}".format(self.start_date.strftime("%Y_%m_%d"), self.end_date.strftime("%Y_%m_%d")),
-                                    RUN_TIME.strftime("%Y_%m_%d_%h_%M_%s")
-                                    if BACKTEST_NAME is None else BACKTEST_NAME)
-
-        fpath = os.path.join(FIGS_DIR, backtest_dir, fname)
-
-        if not os.path.exists(os.path.dirname(fpath)):
-            os.makedirs(os.path.dirname(fpath))
-
-        return fpath
+        pass
 
 def run_forwardtest():
     # parameters
@@ -292,9 +214,10 @@ def run_forwardtest():
     closing_time = dt.time(hour=20)
     standardize = False
     take_profit_threshold = None
-    #start_date = dt.datetime(year=2015, month=11, day=1)
-    #end_date = dt.datetime(year=2015, month=11, day=30)
-    #symbols = ['GCZ5']
+    start_date = dt.datetime(year=2015, month=11, day=1)
+    end_date = dt.datetime(year=2015, month=11, day=30)
+    products = [FuturesContract('GC', exp_year=2016, exp_month=6)]
+    symbols = ['GCZ5']
     start_date = dt.datetime.strptime(sys.argv[2], "%Y-%m-%d")
     end_date = dt.datetime.strptime(sys.argv[3], "%Y-%m-%d")
     symbols = [sys.argv[1]]
@@ -306,13 +229,11 @@ def run_forwardtest():
     }
 
     events = Queue()
-
     bars = CMEBacktestDataHandler(events, symbols, start_date, end_date,
                                     second_bars=True,
                                     start_time=dt.timedelta(hours=3),
                                     end_time=dt.timedelta(hours=22))
-
-    strategy = ClassifierStrategy(bars, events,
+    strategy = ClassifierStrategy(events, bars, products, 100000,
                                   load_classifier=True,
                                   contract_multiplier=contract_multiplier,
                                   transaction_costs=transaction_costs,
@@ -324,7 +245,6 @@ def run_forwardtest():
                                   start_time=start_time,
                                   closing_time=closing_time,
                                   standardize=standardize)
-
     execution = CMEBacktestExecutionHandler(events, symbols, second_bars=True)
     backtest = CMEBacktest(events, bars, strategy, execution, start_date, end_date)
     backtest.run()

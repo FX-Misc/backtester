@@ -1,9 +1,8 @@
-import json
-import logging
 import numpy as np
 import pandas as pd
-from collections import OrderedDict
+from trading.events import OrderEvent
 from abc import ABCMeta, abstractmethod
+
 
 class Strategy(object):
     """
@@ -24,18 +23,8 @@ class Strategy(object):
         self.curr_pnl = 0
         self.last_bar = None
         self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
-        # self.initialize(*args, **kwargs)
-        # logFormatter = logging.Formatter("%(asctime)s %(message)s")
-        # fileHandler = logging.FileHandler('output/strategy_log', mode='w')
-        # fileHandler.setFormatter(logFormatter)
-        # self.logger = logging.getLogger('Strategy')
-        # logging.basicConfig(format=' %(message)s',
-        #                     datefmt='%H:%M:%S',
-        #                     level=logging.INFO)
-        # self.logger.addHandler(fileHandler)
-        # self.logger.propagate = False
 
-    def order(self, symbol, quantity, price=None, type='MARKET'):
+    def order(self, symbol, quantity, type='MARKET', price=None, order_time=None):
         """
         Generate an order and place it into events.
         :param symbol:
@@ -44,16 +33,18 @@ class Strategy(object):
         :param type:
         :return:
         """
-        raise NotImplementedError('Strategy.order()')
+        order = OrderEvent(symbol, quantity, type, price, order_time)
+        self.events.put(order)
 
     @abstractmethod
     def new_tick_update(self, market_event):
         raise NotImplementedError('Strategy.new_tick_update()')
 
     @abstractmethod
-    def new_tick(self, market_event):
+    def new_tick(self):
         """
         Call back for when the strategy receives a new tick.
+        self.last_bar is automatically updated before this.
         :param event: (MarketEvent)
         :return:
         """
@@ -70,9 +61,10 @@ class Strategy(object):
                                                                        fill_event.fill_price, fill_event.symbol]
 
     @abstractmethod
-    def new_fill(self, fill_event):
+    def new_fill(self):
         """
         Call back for when an order placed by the strategy is filled.
+        self.positions, self.cash, and self.transactions_series are all automatically updated before this.
         :param fill_event: (FillEvent)
         :return:
         """
@@ -112,7 +104,6 @@ class FuturesStrategy(Strategy):
         columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
         self.time_series = pd.DataFrame(data=None, columns=columns)
 
-
     def new_tick_update(self, market_event):
         """
         Update:
@@ -121,7 +112,8 @@ class FuturesStrategy(Strategy):
             - transactions (basically the fills)
             - positions series
         """
-        self.last_bar = self.data.get_latest(n=1)
+        self.curr_dt = market_event.dt
+        self.last_bar = self.data.copy()
         _mkt_bids = [self.last_bar[product.symbol]['level_1_price_buy'] for product in self.products]
         _mkt_asks = [self.last_bar[product.symbol]['level_1_price_sell'] for product in self.products]
         _positions = [self.positions[product.symbol] for product in self.products]
@@ -149,11 +141,10 @@ class StockStrategy(Strategy):
 
     def new_tick_update(self, market_event):
         self.curr_dt = market_event.dt
-        self.last_bar = self.data.get_latest(n=1)
+        self.last_bar = self.data.last_bar.copy()
         _mkt_prices = [self.last_bar[product.symbol][self.price_field] for product in self.products]
         _positions = [self.positions[product.symbol] for product in self.products]
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_prices + _positions + [self.cash]
-
 
     def finished(self, save=False):
         for product in self.products:

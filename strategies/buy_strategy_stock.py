@@ -11,13 +11,12 @@ class BuyStrategy(StockStrategy):
         # self.sym2 = products[1].symbol
         self.fills = []
 
-    def new_tick(self, market_event):
-        self.curr_dt = market_event.dt
+    def new_tick(self):
         sym1_order_qty = randint(-100, 100)
         sym2_order_qty = randint(-100, 100)
         temp_capital = self.cash
         if self._check_order(temp_capital, self.sym1, sym1_order_qty):
-            self.order(self.sym1, sym1_order_qty)
+            self.order(self.sym1, sym1_order_qty, order_time=self.curr_dt)
             temp_capital -= self.last_bar[self.sym1][self.price_field] * sym1_order_qty
 
         # if self._check_order(temp_capital, self.sym2, sym2_order_qty):
@@ -29,9 +28,5 @@ class BuyStrategy(StockStrategy):
             return True
         return False
 
-    def new_fill(self, fill_event):
+    def new_fill(self):
         pass
-
-    def order(self, symbol, quantity, order_type='MARKET', price=None,):
-        order = OrderEvent(symbol, quantity, order_type, price, self.curr_dt)
-        self.events.put(order)

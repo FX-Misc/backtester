@@ -1,15 +1,13 @@
-import logging
-import os
-import sys
-import threading
 import time
-
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
-log = logging.getLogger('Backtest')
+import logging
+import threading
+import datetime as dt
 from trading.data_handler import DataHandler
 from trading.events import MarketEvent
 from ib_live.ib_connection import IBConnection
+logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
+log = logging.getLogger('IBDataHandler')
+
 
 class IBDataHandler(DataHandler, IBConnection):
 
@@ -20,24 +18,60 @@ class IBDataHandler(DataHandler, IBConnection):
         self.client_id = config['DATA_CLIENT_ID']
         DataHandler.__init__(self, self.events)
         IBConnection.__init__(self, self.events, self.port, self.client_id)
+        self._initialize_fields_handlers()
+
+        self.curr_dt = dt.datetime.now()
+        self.last_bar = {product.symbol: {} for product in self.products}
 
         # Subscribe to mkt data feeds
-        # contract = config['CONTRACT']
-        contract = products[0].ib_contract
-        self._req_mkt_data(contract)
+        self.ticker_ids = {}  # ticker_id:symbol
+        for i in range(len(self.products)):
+            product = self.products[i]
+            self.ticker_ids[i] = product.symbol
+            contract = product.ib_contract
+            self._req_mkt_data(i, contract)
 
         # Reply handler thread
         thread = threading.Thread(target=self._reply_handler, args=())
         thread.daemon = True
         thread.start()
 
-        # self.symbols = config['SYMBOLS']
-        self.symbols = [product.symbol for product in self.products]
-        self.last_tick = {}
-
         log.info("IBDataHandler initialized!")
 
-    def _req_mkt_data(self, contract):
+    def _initialize_fields_handlers(self):
+        self.price_fields = {
+            1:  'level_1_price_buy',  # 'bid_price',
+            2:  'level_1_price_sell', # 'ask_price',
+            # 4:  'last_price',
+            # 6:  'high_price',
+            # 7:  'low_price',
+            # 9:  'close_price',
+            # 14: 'open_tick',
+            # 15: 'low_13_week',
+            # 16: 'high_13_week',
+            # 17: 'low_26_week',
+            # 18: 'high_26_week',
+            # 19: 'low_52_week',
+            # 20: 'high_52_week',
+        }
+
+        self.size_fields = {
+            0: 'bid_size',
+            3: 'ask_size',
+            5: 'last_size',
+            # 8: 'volume'
+        }
+
+        self.string_fields = {
+            # 32: 'bid_exchange',
+            # 33: 'ask_exchange',
+            45: 'last_timestamp',
+            # 46: 'shortable',
+            # 47: 'fundamental_ratio',
+            # 48: 'rt_volume',
+        }
+
+    def _req_mkt_data(self, ticker_id, contract):
         """
         tickerId (int) The ticker id. Must be a unique value. When the market data returns,
                         it will be identified by this tag. This is also used when canceling the market data.
@@ -47,22 +81,19 @@ class IBDataHandler(DataHandler, IBConnection):
         snapshot (boolean) Check to return a single snapshot of market data and have the market data
                           subscription cancel. Do not enter any genericTicklist values if you use snapshot.
 
-        :param type:
+        :param ticker_id:
+        :param contract:
         :return:
         """
-        self.connection.reqMarketDataType(1)  # type 3 is for delayed data
-        self.connection.reqMktData(12356, contract, "", False)
+        self.connection.reqMarketDataType(1)  # type 1 is for live data
+        self.connection.reqMktData(ticker_id, contract, "", False)
 
     def get_latest(self, n=1):
-        return self.last_tick
+        return self.last_bar
 
     def update(self):
         pass
 
-    def listen_data(self):
-        pass
-
-    # Message Handlers
     def _reply_handler(self):
         """
         Handle all type of replies from IB in a separate thread.
@@ -76,6 +107,7 @@ class IBDataHandler(DataHandler, IBConnection):
             'tickPrice': self._handle_tick_price,
             'tickSize': self._handle_tick_size,
             'tickGeneric': self._handle_tick_generic,
+            'tickString': self._handle_tick_string,
         }
 
         while True:
@@ -87,7 +119,8 @@ class IBDataHandler(DataHandler, IBConnection):
                     event = reply_handlers[msg.typeName](msg_dict)  # format message as dict
                     self.events.put(event)
                 except KeyError, e:
-                    print "{} Need to handle message type: {}".format(repr(e), msg.typeName)
+                    # print "{} Need to handle message type: {}".format(repr(e), msg.typeName)
+                    pass
             except IndexError:
                 time.sleep(self.msg_interval)
 
@@ -97,7 +130,6 @@ class IBDataHandler(DataHandler, IBConnection):
         field (int)    Specifies the type of price. Pass the field value into TickType.getField(int tickType)
                        to retrieve the field description. For example, a field value of 0 will map to bidSize,
                        a field value of 3 will map to askSize, etc.
-
                        0 = bid size
                        3 = ask size
                        5 = last size
@@ -107,17 +139,10 @@ class IBDataHandler(DataHandler, IBConnection):
         :param msg: tickSize message
         :return:
         """
-        delayed_size_fields = {
-            69: 'bid_size',
-            70: 'ask_size',
-            74: 'last_size'
-        }
-        try:
-            size = msg['size']
-            self.last_tick[delayed_size_fields[msg['field']]] = size
-            return MarketEvent(None)
-        except KeyError:
-            pass
+        size = msg['size']
+        tick_symbol = self.ticker_ids[msg['tickerId']]
+        self.last_bar[tick_symbol][self.size_fields[msg['field']]] = size
+        return MarketEvent(None)
 
     def _handle_tick_price(self, msg):
         """
@@ -140,17 +165,10 @@ class IBDataHandler(DataHandler, IBConnection):
         :param msg: tickPrice message
         :return: (MarketEvent)
         """
-        delayed_price_fields = {
-            1: 'bid_price',
-            2: 'ask_price',
-            4: 'last_price',
-            6: 'high_price',
-            7: 'low_price',
-            9: 'close_price',
-        }
         price = msg['price']
-        self.last_tick[delayed_price_fields[msg['field']]] = price
-        return MarketEvent(None)
+        tick_symbol = self.ticker_ids[msg['tickerId']]
+        self.last_bar[tick_symbol][self.price_fields[msg['field']]] = price
+        return MarketEvent(self.curr_dt)
 
     def _handle_tick_generic(self, msg):
         """
@@ -165,3 +183,15 @@ class IBDataHandler(DataHandler, IBConnection):
         :return:
         """
         pass
+
+    def _handle_tick_string(self, msg):
+        """
+        :param msg:
+        :return:
+        """
+        string = msg['value']
+        if msg['tickType'] == 45:
+            string = dt.datetime.fromtimestamp(float(string))
+            self.curr_dt = string
+        tick_symbol = self.ticker_ids[msg['tickerId']]
+        self.last_bar[tick_symbol][self.string_fields[msg['tickType']]] = string

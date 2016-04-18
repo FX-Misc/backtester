@@ -105,15 +105,15 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         return ib_fill_event
 
     def handle_open_order_msg(self, msg):
-        # print msg
+        print 'handle_open_order_msg', msg
         pass
 
     def handle_order_status_msg(self, msg):
-        # print msg
+        print 'handle_order_status_msg', msg
         pass
 
     def handle_commission_report_msg(self, msg):
-        # print msg
+        print 'handle_commission_report_msg', msg
         pass
 
 def create_order(order_type, quantity, limit_price=None):
