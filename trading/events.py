@@ -54,9 +54,10 @@ class OrderEvent(Event):
     :param quantity: (int)
     :param price: (float)
     """
-    def __init__(self, symbol, quantity, order_type='MARKET', price=None, order_time=None):
+    def __init__(self, product, quantity, order_type='MARKET', price=None, order_time=None):
         self.type = 'ORDER'
-        self.symbol = symbol
+        self.product = product
+        self.symbol = product.symbol
         assert order_type == 'MARKET' or order_type == 'LIMIT'
         self.order_type = order_type
         self.quantity = quantity

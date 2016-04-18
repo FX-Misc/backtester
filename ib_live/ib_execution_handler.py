@@ -41,7 +41,8 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         """
         order = create_order(order_event.order_type, order_event.quantity, limit_price=order_event.price)
         # TODO: temp fix.....pass in products for FuturesOrders or IBOrders
-        contract = create_ib_futures_contract_from_symbol(order_event.symbol)
+        # contract = create_ib_futures_contract_from_symbol(order_event.symbol)
+        contract = order_event.product.ib_contract
         send = self._send_order(contract, order)
         if send:
             log.info(str(order_event))

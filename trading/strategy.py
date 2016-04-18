@@ -24,16 +24,16 @@ class Strategy(object):
         self.last_bar = None
         self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
 
-    def order(self, symbol, quantity, type='MARKET', price=None, order_time=None):
+    def order(self, product, quantity, type='MARKET', price=None, order_time=None):
         """
         Generate an order and place it into events.
-        :param symbol:
+        :param product:
         :param quantity:
         :param price:
         :param type:
         :return:
         """
-        order = OrderEvent(symbol, quantity, type, price, order_time)
+        order = OrderEvent(product, quantity, type, price, order_time)
         self.events.put(order)
 
     @abstractmethod
