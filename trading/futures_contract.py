@@ -1,5 +1,4 @@
 import datetime as dt
-from ib.ext.ContractDetails import ContractDetails
 from ib_live.ib_utils import create_ib_futures_contract
 from utils.futures_utils import get_contract_specs, build_contract
 

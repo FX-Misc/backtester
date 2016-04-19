@@ -1,6 +1,4 @@
 from random import randint
-from collections import OrderedDict
-from trading.events import OrderEvent
 from trading.strategy import FuturesStrategy
 
 class BuyStrategy(FuturesStrategy):

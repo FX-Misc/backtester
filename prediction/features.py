@@ -4,10 +4,8 @@ import os
 import warnings
 import numpy as np
 import pandas as pd
-
 from prediction.featutils import add_log_returns, standardize_features, add_mid_price
-
-from datautils.data_path import get_file_path, get_date_and_sym
+from cme_backtest.data_utils.data_path import get_file_path, get_date_and_sym
 import statsmodels.api as sm
 
 """
@@ -448,10 +446,13 @@ def rsi(data, size, window, do_raise=True):
 
 @feature
 def mean_reversion_signal(data, hl, window):
+    print data.tail(5)
     if 'mid_price' not in data.columns:
         add_mid_price(data)
     ema = pd.ewma(data['mid_price'], halflife=hl)
+    print ema.tail(5)
     std = pd.rolling_std(data['mid_price'], window=window, min_periods=0)
+    print std.tail(5)
     data['mean_reversion_signal_{}_{}'.format(hl, window)] = (data['mid_price'] - ema) / std
     return ['mean_reversion_signal_{}_{}'.format(hl, window)]
 

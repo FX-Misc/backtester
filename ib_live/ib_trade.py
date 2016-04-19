@@ -1,6 +1,6 @@
 import time
 import json
-from strategies.buy_strategy_futures import BuyStrategy
+from strategies.paper_strategy import ClassifierStrategy
 from ib_live.ib_data_handler import IBDataHandler
 from ib_live.ib_execution_handler import IBExecutionHandler
 from queue import Queue, Empty
@@ -49,7 +49,7 @@ class IBTrade(object):
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill_update(fill_event)
-        self.strategy.new_fill()
+        self.strategy.new_fill(fill_event)
 
 
     def _log_trading_info(self):
@@ -65,7 +65,7 @@ events = Queue()
 products = [FuturesContract('GC', exp_year=2016, exp_month=6)]
 data = IBDataHandler(events, products, IB_CONFIG)
 execution = IBExecutionHandler(events, IB_CONFIG)
-strategy = BuyStrategy(events, data, products)
+strategy = ClassifierStrategy(events, data, products=products)
 ib_trade = IBTrade(events, strategy, data, execution)
 time.sleep(5)
 ib_trade.run()

@@ -40,12 +40,8 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         :param contract: (ib.ext.Contract)
         """
         order = create_order(order_event.order_type, order_event.quantity, limit_price=order_event.price)
-        # TODO: temp fix.....pass in products for FuturesOrders or IBOrders
-        # contract = create_ib_futures_contract_from_symbol(order_event.symbol)
         contract = order_event.product.ib_contract
-        send = self._send_order(contract, order)
-        if send:
-            log.info(str(order_event))
+        self._send_order(contract, order)
 
     def _send_order(self, contract, order):
         """
@@ -59,7 +55,6 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         self.next_valid_order_id += 1
         self.connection.placeOrder(order_id, contract, order)
         self.orders[order_id] = (contract, order)
-        return True
 
     def _log_order(self, contract, order):
         raise NotImplementedError

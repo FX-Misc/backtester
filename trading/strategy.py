@@ -18,11 +18,14 @@ class Strategy(object):
         self.products = products
         self.curr_dt = None
         self.positions = {product.symbol: 0 for product in self.products}
+        self.positions_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'pos'])
+                                 for product in self.products}
+        self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.curr_pnl = 0
         self.last_bar = None
-        self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
+        self.initialize(*args, **kwargs)
 
     def order(self, product, quantity, type='MARKET', price=None, order_time=None):
         """
@@ -61,7 +64,7 @@ class Strategy(object):
                                                                        fill_event.fill_price, fill_event.symbol]
 
     @abstractmethod
-    def new_fill(self):
+    def new_fill(self, fill_event):
         """
         Call back for when an order placed by the strategy is filled.
         self.positions, self.cash, and self.transactions_series are all automatically updated before this.
@@ -79,11 +82,11 @@ class Strategy(object):
         raise NotImplementedError("Strategy.finished()")
 
     # @abstractmethod
-    # def initialize(self, *args, **kwargs):
-    #     """
-    #     Initialize the strategy
-    #     """
-    #     raise NotImplementedError("initialize()")
+    def initialize(self, *args, **kwargs):
+        """
+        Initialize the strategy
+        """
+        pass
 
     # @abstractmethod
     # def new_day(self, event):
@@ -98,11 +101,12 @@ class Strategy(object):
 class FuturesStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=0, continuous=True):
         super(FuturesStrategy, self).__init__(events, data, products, initial_cash)
-        mkt_price_columns = [product.symbol+'_mkt_bid' for product in self.products] + \
-                            [product.symbol+'_mkt_ask' for product in self.products]
-        position_columns = [product.symbol+'_pos' for product in self.products]
-        columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
-        self.time_series = pd.DataFrame(data=None, columns=columns)
+        self.transactions_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
+                                    for product in self.products}
+        self.time_series = {}
+        for product in self.products:
+            columns = ['dt', 'level_1_price_buy', 'level_1_price_sell', 'pos', 'cash']
+            self.time_series[product.symbol] = pd.DataFrame(data=None, columns=columns)
 
     def new_tick_update(self, market_event):
         """
@@ -114,10 +118,13 @@ class FuturesStrategy(Strategy):
         """
         self.curr_dt = market_event.dt
         self.last_bar = self.data.last_bar.copy()
-        _mkt_bids = [self.last_bar[product.symbol]['level_1_price_buy'] for product in self.products]
-        _mkt_asks = [self.last_bar[product.symbol]['level_1_price_sell'] for product in self.products]
-        _positions = [self.positions[product.symbol] for product in self.products]
-        self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_bids + _mkt_asks + _positions + [self.cash]
+        for product in self.products:
+            mkt_bid = self.last_bar[product.symbol]['level_1_price_buy']
+            mkt_ask = self.last_bar[product.symbol]['level_1_price_sell']
+            pos = self.positions[product.symbol]
+            self.time_series[product.symbol].loc[len(self.time_series[product.symbol])] = \
+                [self.curr_dt, mkt_bid, mkt_ask, pos, self.cash] + \
+                [0]*(len(self.time_series[product.symbol].keys())-5)  # add placeholder for any features that need to be calculates
         # for product in self.products:
         #     # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
         #     mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
@@ -125,10 +132,26 @@ class FuturesStrategy(Strategy):
         #                             if self.positions[product.symbol] < 0
         #                             else self.last_bar['level_1_price_sell']) for product.symbol in self.products])
         #     # self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
+    # def update_metrics(self):
+    #     last_bar = self.get_latest_bars(self.symbol, n=1)
+    #     pnl_ = self.cash + sum([self.pos[sym] * self.contract_multiplier[sym] *
+    #                             (last_bar['level_1_price_buy']
+    #                              if self.pos[sym] < 0 else
+    #                              last_bar['level_1_price_sell']) for sym in self.symbols])
+    #     self.pnl.append(pnl_)
+    #     self.time_series.append(self.cur_time)
+    #     for sym in self.symbols:
+    #         self.price_series[sym].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
+    #         self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
 
     def finished(self):
         self.time_series.set_index('dt', inplace=True)
 
+    def get_latest_bars(self, symbol, n=1):
+#         TODO: use datetime window instead
+        if len(self.time_series[symbol]) < n:
+            return self.time_series[symbol].ix[0:len(self.time_series[symbol])]
+        return self.time_series[symbol].ix[len(self.time_series[symbol])-n:len(self.time_series[symbol])+1]
 
 class StockStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=1000000, price_field='Open'):
@@ -147,6 +170,7 @@ class StockStrategy(Strategy):
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_prices + _positions + [self.cash]
 
     def finished(self, save=False):
+        print 'finished stock backtest'
         for product in self.products:
             self.time_series[product.symbol] = self.time_series[product.symbol+'_pos']*\
                                                self.time_series[product.symbol+'_mkt']

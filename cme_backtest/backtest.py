@@ -41,4 +41,4 @@ class CMEBacktest(Backtest):
 
     def _handle_fill_event(self, fill_event):
         self.strategy.new_fill_update(fill_event)
-        self.strategy.new_fill()
+        self.strategy.new_fill(fill_event)
