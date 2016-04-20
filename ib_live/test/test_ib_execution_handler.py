@@ -35,17 +35,16 @@ class TestIBExecutionHandler(unittest.TestCase):
         time.sleep(.5)
 
     def test_process_new_order_stock(self):
-        pass
-        # order_event = OrderEvent('GC', 1, 'MARKET', price=None, order_time=None)
-        # self.execution.process_new_order(order_event)
-        # time.sleep(.5)
-        # fill = self.execution.fills.popleft()
-        # self.assertIsInstance(fill, IBFillEvent)
-        # self.assertIsNotNone(fill)
-        # self.assertEqual(fill.exchange, 'NYMEX')
-        # self.assertEqual(fill.symbol, 'GC')
-        # self.assertEqual(fill.quantity, 1)
-        # time.sleep(.5)
-
-    def test_create_order(self):
-        pass
+        if dt.datetime.now().time() < self.stock.mkt_open or dt.datetime.now().time() > self.stock.mkt_close:
+            return True
+        order_event = OrderEvent(self.stock, 1, 'MARKET', price=None, order_time=None)
+        self.execution.process_new_order(order_event)
+        time.sleep(.5)
+        # TODO: tests here
+        fill = self.execution.fills.popleft()
+        self.assertIsInstance(fill, IBFillEvent)
+        self.assertIsNotNone(fill)
+        self.assertEqual(fill.exchange, 'NYMEX')
+        self.assertEqual(fill.symbol, 'GC')
+        self.assertEqual(fill.quantity, 1)
+        time.sleep(.5)
