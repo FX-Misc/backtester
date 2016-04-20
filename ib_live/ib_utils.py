@@ -1,4 +1,4 @@
-import utils.futures_utils as fut
+import trading.futures_contract as fut
 from ib.ext.Contract import Contract
 
 

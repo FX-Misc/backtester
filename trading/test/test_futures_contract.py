@@ -1,10 +1,9 @@
 import unittest
 import datetime as dt
-import trading.futures_contract as fut
-from trading.futures_contract import FuturesContract
+import trading.futures_utils as fut
 
 
-class TestFuturesContract(unittest.TestCase):
+class TestFuturesUtils(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.symbol = 'GC'
