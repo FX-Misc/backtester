@@ -3,10 +3,16 @@ from ib.ext.Contract import Contract
 
 
 def create_ib_futures_contract_from_symbol(symbol):
+    """
+
+    :param symbol:
+    :return:
+    """
     exp_year = fut.get_exp_year_from_symbol(symbol)
     exp_month = fut.get_exp_month_from_symbol(symbol)
     base_symbol = fut.get_base_symbol_from_symbol(symbol)
     return create_ib_futures_contract(base_symbol, exp_month, exp_year)
+
 
 def create_ib_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYMEX', currency='USD'):
     """
@@ -34,6 +40,26 @@ def create_ib_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYM
     contract.m_currency = 'USD'
     return contract
 
+
+def create_ib_stock_contract(symbol, exch='NASDAQ', prim_exch='NASDAQ', curr='USD'):
+    """
+    Create a stock contract used for IB orders.
+    :param symbol:
+    :param exch:
+    :param prim_exch:
+    :param curr:
+    :return:
+    """
+    contract = Contract()
+    contract.m_symbol = symbol
+    contract.m_secType = 'STK'
+    contract.m_exchange = exch
+    contract.m_primaryExch = prim_exch
+    contract.m_currency = curr
+    print contract.__dict__
+    return contract
+
+
 def get_contract_details(contract):
     """
     Converts Contract into a dict
@@ -51,6 +77,7 @@ def get_contract_details(contract):
     contract_details['sec_id_type'] = contract.m_secIdType
     contract_details['sec_id'] = contract.m_secId
     return contract_details
+
 
 def get_execution_details(execution):
     """

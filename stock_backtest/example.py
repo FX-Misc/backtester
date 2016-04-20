@@ -17,3 +17,8 @@ execution = StockBacktestExecutionHandler(events)
 strategy = BuyStrategy(events, data, products, initial_cash=100000)
 backtest = StockBacktest(events, strategy, data, execution, start_date, end_date)
 backtest.run()
+
+print strategy.time_series.head(5)
+print strategy.positions_series.head(5)
+print strategy.transactions_series.head(5)
+print strategy.returns_series.head(5)

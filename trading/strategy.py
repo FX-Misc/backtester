@@ -165,6 +165,7 @@ class StockStrategy(Strategy):
     def new_tick_update(self, market_event):
         self.curr_dt = market_event.dt
         self.last_bar = self.data.last_bar.copy()
+        print self.last_bar
         _mkt_prices = [self.last_bar[product.symbol][self.price_field] for product in self.products]
         _positions = [self.positions[product.symbol] for product in self.products]
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_prices + _positions + [self.cash]

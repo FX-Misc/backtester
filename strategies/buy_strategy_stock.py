@@ -9,20 +9,14 @@ class BuyStrategy(StockStrategy):
         self.curr_dt = None
         self.prod1 = products[0]
         self.sym1 = products[0].symbol
-        # self.sym2 = products[1].symbol
         self.fills = []
 
     def new_tick(self):
         sym1_order_qty = randint(-100, 100)
-        sym2_order_qty = randint(-100, 100)
         temp_capital = self.cash
         if self._check_order(temp_capital, self.sym1, sym1_order_qty):
             self.order(self.prod1, sym1_order_qty, order_time=self.curr_dt)
             temp_capital -= self.last_bar[self.sym1][self.price_field] * sym1_order_qty
-
-        # if self._check_order(temp_capital, self.sym2, sym2_order_qty):
-        #     self.order(self.sym2, sym2_order_qty)
-        #     temp_capital -= self.last_bar[self.sym2][self.price_field] * sym2_order_qty
 
     def _check_order(self, capital, symbol, quantity):
         if self.last_bar[symbol][self.price_field] * quantity < capital:

@@ -44,7 +44,7 @@ class StockBacktest(Backtest):
 
     def _handle_market_event(self, market_event):
         self.strategy.new_tick_update(market_event)
-        self.strategy.new_tick(market_event)
+        self.strategy.new_tick()
         self.execution.process_resting_orders(market_event)
 
     def _handle_order_event(self, order_event):

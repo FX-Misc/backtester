@@ -1,10 +1,4 @@
-import time
-import json
-from strategies.paper_strategy import ClassifierStrategy
-from ib_live.ib_data_handler import IBDataHandler
-from ib_live.ib_execution_handler import IBExecutionHandler
-from queue import Queue, Empty
-from trading.futures_contract import FuturesContract
+from queue import Empty
 
 class IBTrade(object):
     def __init__(self, events, strategy, data, execution, **kwargs):
@@ -58,14 +52,3 @@ class IBTrade(object):
               "Execution: {} \n"\
             .format(self.strategy.__class__.__name__,
                     self.execution.__class__.__name__)
-
-
-IB_CONFIG = json.load(open('test_ib_config.json', 'r'))
-events = Queue()
-products = [FuturesContract('GC', exp_year=2016, exp_month=6)]
-data = IBDataHandler(events, products, IB_CONFIG)
-execution = IBExecutionHandler(events, IB_CONFIG)
-strategy = ClassifierStrategy(events, data, products=products)
-ib_trade = IBTrade(events, strategy, data, execution)
-time.sleep(5)
-ib_trade.run()
