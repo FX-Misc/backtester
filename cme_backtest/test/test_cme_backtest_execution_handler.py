@@ -18,12 +18,12 @@ class TestCMEBacktestExecutionHandler(unittest.TestCase):
         execution_handler = CMEBacktestExecutionHandler(events, symbols)
         order_dt = dt.datetime(year=2015, month=11, day=18)
         execution_handler._check_day_data(order_dt)
-        self.assertIsNotNone(execution_handler.current_day_data)
+        self.assertIsNotNone(execution_handler.curr_day_data)
 
         # test a new date for order
         order_dt = dt.datetime(year=2015, month=11, day=19)
         execution_handler._check_day_data(order_dt)
-        self.assertEqual(execution_handler.current_day_data.iloc[0]['level_1_price_buy'], 45.02)
+        self.assertEqual(execution_handler.curr_day_data.iloc[0]['level_1_price_buy'], 45.02)
 
     def test_execute_order(self):
         symbols = ['CLF6', 'GCZ5']

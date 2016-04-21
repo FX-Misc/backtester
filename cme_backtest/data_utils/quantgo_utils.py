@@ -138,12 +138,6 @@ def get_data_multi(symbols, date, download=False, save=True, parse_new=False, se
 
     :return: (Multi-Index DataFrame)
     """
-    # multi_data = {}
-    # for symbol in symbols:
-    #     multi_data[symbol] = get_data(symbol, date, download=download, save=save, parse_new=parse_new,
-    #                                   second_bars=second_bars, subscription=subscription,
-    #                                   start_time=start_time, end_time=end_time, concise=concise)
-    # return multi_data
     multi_data = {}
     if len(symbols) == 1:
         multi_data[symbols[0]] = get_data(symbols[0], date, download, save, parse_new, second_bars,
