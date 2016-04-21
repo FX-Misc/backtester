@@ -14,10 +14,14 @@ class TestFuturesUtils(unittest.TestCase):
         cls.curr_month = 4
         cls.curr_day = 6
 
-    def test_get_month_code(self):
+    def test_get_contract_month_code(self):
         months = ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
         for i in range(12):
             self.assertTrue(fut.get_contract_month_code(i + 1), months[i])
+
+    def test_build_contract(self):
+        contract = fut.build_contract(self.symbol, self.exp_year, self.exp_month)
+        self.assertEqual('GCK6', contract)
 
     def test_get_exp_year_from_symbol(self):
         self.assertEqual(fut.get_exp_year_from_symbol(self.full_symbol), 2016)
@@ -27,10 +31,6 @@ class TestFuturesUtils(unittest.TestCase):
 
     def test_get_base_symbol_from_symbol(self):
         self.assertEqual(fut.get_base_symbol_from_symbol(self.full_symbol), 'GC')
-
-    def test_build_contract(self):
-        contract = fut.build_contract(self.symbol, self.exp_year, self.exp_month)
-        self.assertEqual('GCK6', contract)
 
     def test_get_quandl_future_code(self):
         quandl_future_code = fut.get_quandl_future_code(self.symbol, self.exp_year, self.exp_month)
