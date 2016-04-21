@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from cme_backtest.data_utils.quantgo_utils import _reindex_data
 from trading.events import OrderEvent
 from abc import ABCMeta, abstractmethod
 
@@ -111,31 +112,48 @@ class FuturesStrategy(Strategy):
 
     def __init__(self, events, data, products, initial_cash=0, continuous=True):
         super(FuturesStrategy, self).__init__(events, data, products, initial_cash)
-        self.transactions_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
+        self.cash_series = pd.Series(data=None)
+        self.positions_series = {product.symbol: pd.Series(data=None) for product in self.products}
+        self.transactions_series = {product.symbol: pd.DataFrame(data=None,
+                                                                 columns=['dt', 'amount', 'price', 'symbol'])
                                     for product in self.products}
-        self.time_series = {}
-        for product in self.products:
-            columns = ['dt', 'level_1_price_buy', 'level_1_price_sell', 'pos', 'cash']
-            self.time_series[product.symbol] = pd.DataFrame(data=None, columns=columns)
+        # self.time_series = {product.symbol: pd.DataFrame(data=None,
+        #                                                  columns=['dt', 'level_1_price_buy', 'level_1_price_sell'])
+        #                     for product in self.products}
+        # self.time_series = None
+        # self.time_series = _reindex_data(self.time_series)
+        self.time_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'level_1_price_buy', 'level_1_price_sell'])
+                for product in self.products}
+        self.time_series = _reindex_data(self.time_series)
+        reform = {(outerKey, innerKey): values for outerKey, innerDict in self.time_series.iteritems()
+                  for innerKey, values in innerDict.iteritems()}
+        self.time_series = pd.DataFrame(reform).ffill()
 
 
     def new_tick_update(self, market_event):
         """
-        Update:
+            Update:
             - price_series (last_bar)
             - returns (series of decimal of cumulative PnL)
             - transactions (basically the fills)
             - positions series
+        :param market_event:
+        :return:
         """
         self.curr_dt = market_event.dt
-        self.last_bar = self.data.last_bar.copy()
-        for product in self.products:
-            mkt_bid = self.last_bar[product.symbol]['level_1_price_buy']
-            mkt_ask = self.last_bar[product.symbol]['level_1_price_sell']
-            pos = self.positions[product.symbol]
-            self.time_series[product.symbol].loc[len(self.time_series[product.symbol])] = \
-                [self.curr_dt, mkt_bid, mkt_ask, pos, self.cash] + \
-                [0]*(len(self.time_series[product.symbol].keys())-5)  # add placeholder for any features that need to be calculates
+        self.last_bar = market_event.data
+        self.time_series.loc[len(self.time_series)] = market_event.data
+        # print self.time_series.tail(1)
+        # self.last_bar = self.data.last_bar.copy()
+        # for product in self.products:
+        #     mkt_bid = self.last_bar[product.symbol]['level_1_price_buy']
+        #     mkt_ask = self.last_bar[product.symbol]['level_1_price_sell']
+        #     pos = self.positions[product.symbol]
+        #     self.time_series[product.symbol].loc[len(self.time_series[product.symbol])] = \
+        #         [self.curr_dt, mkt_bid, mkt_ask, pos, self.cash] + \
+        #         [0]*(len(self.time_series[product.symbol].keys())-5)
+
+        # add placeholder for any features that need to be calculates
         # for product in self.products:
         #     # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
         #     mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
@@ -156,8 +174,9 @@ class FuturesStrategy(Strategy):
     #         self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
 
     def finished(self):
-        for symbol_time_series in self.time_series.values():
-            symbol_time_series.set_index('dt', inplace=True)
+        pass
+        # for symbol_time_series in self.time_series.values():
+        #     symbol_time_series.set_index('dt', inplace=True)
 
     def get_latest_bars(self, symbol, n=1):
 #         TODO: use datetime window instead

@@ -1,10 +1,8 @@
-import datetime as dt
 import os
 import re
-
 import pandas as pd
+import datetime as dt
 from dateutil.rrule import rrule, DAILY
-
 from cme_backtest.data_utils.data_aggregation import make_second_bars, make_concise
 from cme_backtest.data_utils.data_path import get_file_path
 from cme_backtest.data_utils.quantgo_download import download_data
@@ -111,7 +109,7 @@ def get_data(symbol, date, download=False, save=True, parse_new=False, second_ba
     if concise is True:
         data = make_concise(data)
 
-    data['datetime'] = data.index
+    data['dt'] = data.index
 
     if len(data) <= 1:
         raise ValueError("Bad data for {} - {}".format(symbol, date.strftime("%Y-%m-%d")))

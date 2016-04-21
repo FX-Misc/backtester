@@ -6,7 +6,7 @@ from data_utils.quantgo_utils import get_data_multi
 from events import CMEBacktestFillEvent
 from trading.execution_handler import ExecutionHandler
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
-log = logging.getLogger('Execution Handljer')
+log = logging.getLogger('Execution Handler')
 
 
 CME_HISTORICAL_ORDER_DELAY = dt.timedelta(seconds=.01)
@@ -23,7 +23,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         self.second_bars = second_bars
         self.commission = commission if commission is not None else CME_HISTORICAL_TRANSACTION_COST
         self.resting_orders = []
-        self.current_day_data = None
+        self.curr_day_data = None
 
     def process_new_order(self, order_event):
         """
@@ -36,6 +36,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
     def process_resting_orders(self, market_event):
         """
         On new market update, check resting orders to see if they can be filled.
+        :param market_event:
         """
         if not self.resting_orders:
             return
@@ -54,6 +55,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
     def place_order(self, order_event):
         """
         Places a MARKET/LIMIT order.
+        :param order_event:
         """
         self._check_day_data(order_event.order_time)
         if order_event.order_type == 'MARKET':
@@ -73,7 +75,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         if order_event.quantity == 0:
             return
         fill_time = self._get_fill_time(order_event.order_time, order_event.symbol)
-        sym_data = self.current_day_data[order_event.symbol]
+        sym_data = self.curr_day_data[order_event.symbol]
         direction = self._get_order_direction(order_event)
         if direction == 1:
             fill_price = sym_data['level_1_price_sell'].asof(fill_time)
@@ -86,7 +88,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         if order_event.quantity == 0:
             return
         direction = self._get_order_direction(order_event)
-        sym_data = self.current_day_data[order_event.symbol]
+        sym_data = self.curr_day_data[order_event.symbol]
         if direction == 1:
             fill_price = sym_data['level_1_price_buy'].asof(fill_time)
             self.create_fill_event(order_event, fill_price, fill_time)
@@ -99,8 +101,9 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         Conditions to fill a limit order (BUY)
         """
         symbol = resting_order.symbol
-        if resting_order.price < self.current_day_data[symbol]['level_1_price_sell'].asof(fill_time) and self._limit_fill() is True \
-                or resting_order.price >= self.current_day_data[symbol]['level_1_price_sell'].asof(fill_time):
+        if resting_order.price < self.curr_day_data[symbol]['level_1_price_sell'].asof(fill_time) and \
+                        self._limit_fill() is True or \
+                        resting_order.price >= self.curr_day_data[symbol]['level_1_price_sell'].asof(fill_time):
             return True
         return False
 
@@ -108,11 +111,11 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         """
         Conditions to fill a limit order (SELL)
         """
-        if resting_order.price > self.current_day_data['level_1_price_buy'].asof(fill_time) and self._limit_fill() is True \
-                or resting_order.price <= self.current_day_data['level_1_price_buy'].asof(fill_time):
+        if resting_order.price > self.curr_day_data['level_1_price_buy'].asof(fill_time) and \
+                        self._limit_fill() is True or \
+                        resting_order.price <= self.curr_day_data['level_1_price_buy'].asof(fill_time):
             return True
-        else:
-            return False
+        return False
 
     def clear_resting_orders(self):
         if len(self.resting_orders) > 0:
@@ -124,7 +127,7 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         Applies a delay to the order_time and returns the time of the data for which the order can be filled.
         """
         execution_time = order_time + CME_HISTORICAL_ORDER_DELAY
-        fill_time = self.current_day_data[symbol].index.asof(execution_time)
+        fill_time = self.curr_day_data[symbol].index.asof(execution_time)
         return fill_time
 
     def create_fill_event(self, order_event, fill_price, fill_time):
@@ -140,9 +143,9 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         Check if data for the current day (based on orders) exists, if not, get the data.
         On a new day change, clears all resting orders.
         """
-        if self.current_day_data is None or self.compare_dates(self.current_day_data.index[0], datetime) is False:
+        if self.curr_day_data is None or self.compare_dates(self.curr_day_data.index[0], datetime) is False:
             date = dt.datetime(year=datetime.year, month=datetime.month, day=datetime.day)
-            self.current_day_data = get_data_multi(self.symbols, date, second_bars=self.second_bars)
+            self.curr_day_data = get_data_multi(self.symbols, date, second_bars=self.second_bars)
             self.clear_resting_orders()
 
     @staticmethod
