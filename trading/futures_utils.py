@@ -2,10 +2,13 @@ import os
 import csv
 import json
 import datetime as dt
-import Quandl as qd
+import Quandl as Qd
 from dateutil.tz import tzlocal
 from dateutil.relativedelta import relativedelta
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+QUANDL_KEY = "SyH7V4ywJGho77EC6W7C"
+
 
 def _load_cme_month_codes():
     f_path = os.path.join(__location__, 'cme_month_codes.json')
@@ -46,7 +49,8 @@ def get_exp_year_from_symbol(symbol):
 
 
 def get_exp_month_from_symbol(symbol):
-    return MONTH_CODES[symbol[-2]]
+    month_codes = _load_cme_month_codes()
+    return month_codes[symbol[-2]]
 
 
 def get_base_symbol_from_symbol(symbol):
@@ -85,7 +89,7 @@ def get_futures_data(symbol, exp_year, exp_month):
     | 2016-03-10 00:00:00 | 1250.6 | 1274.5 | 1240.1 | 1274   |     15.4 |   1273.3 |      249 |             309 |
     """
     quandl_future_code = get_quandl_future_code(symbol, exp_year, exp_month)
-    return qd.get(dataset=quandl_future_code, authtoken=QUANDL_KEY)
+    return Qd.get(dataset=quandl_future_code, authtoken=QUANDL_KEY)
 
 
 def get_highest_volume_contract(symbol, year, month, day):
@@ -108,7 +112,7 @@ def get_highest_volume_contract(symbol, year, month, day):
             if volume >= max_volume:
                 highest_volume_contract = build_contract(symbol, date.year, date.month)
                 max_volume = volume
-        except qd.DatasetNotFound:
+        except Qd.DatasetNotFound:
             pass
 
     return highest_volume_contract
@@ -135,6 +139,3 @@ def get_mkt_times(trading_times_str):
     mkt_open = dt.datetime.strptime(mkt_open_str, '%H:%M').replace(tzinfo=tzlocal()).time()
     mkt_close = dt.datetime.strptime(mkt_close_str, '%H:%M').replace(tzinfo=tzlocal()).time()
     return mkt_open, mkt_close
-
-
-QUANDL_KEY = "SyH7V4ywJGho77EC6W7C"
