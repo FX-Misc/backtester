@@ -5,14 +5,21 @@ from abc import ABCMeta, abstractmethod
 
 
 class Strategy(object):
-    """
-    The Strategy is an ABC that presents an interface for taking market data and
-    generating corresponding OrderEvents which are sent to the ExecutionHandler.
-    """
+
     __metaclass__ = ABCMeta
 
     def __init__(self, events, data, products, initial_cash, *args, **kwargs):
+        """
+        The Strategy is an ABC that presents an interface for taking market data and
+        generating corresponding OrderEvents which are sent to the ExecutionHandler.
 
+        :param events: (Queue)
+        :param data: (DataHandler)
+        :param products: (list) (FuturesContract)
+        :param initial_cash: (float)
+        :param args:
+        :param kwargs:
+        """
         self.events = events
         self.data = data
         self.products = products
@@ -27,20 +34,25 @@ class Strategy(object):
         self.last_bar = None
         self.initialize(*args, **kwargs)
 
-    def order(self, product, quantity, type='MARKET', price=None, order_time=None):
+    def order(self, product, quantity, order_type='MARKET', price=None, order_time=None):
         """
         Generate an order and place it into events.
-        :param product:
-        :param quantity:
-        :param price:
-        :param type:
-        :return:
+        :param product: (FuturesContract)
+        :param order_type: (str) 'MARKET' or 'LIMIT'
+        :param quantity: (int)
+        :param price: (float)
+        :param order_time: (DateTime)
         """
-        order = OrderEvent(product, quantity, type, price, order_time)
+        order = OrderEvent(product, quantity, order_type, price, order_time)
         self.events.put(order)
 
     @abstractmethod
     def new_tick_update(self, market_event):
+        """
+        Internal updates on new tick.
+        Updates positions, values, time series, returns, etc.
+        :param market_event: (MarketEvent)
+        """
         raise NotImplementedError('Strategy.new_tick_update()')
 
     @abstractmethod
@@ -48,8 +60,6 @@ class Strategy(object):
         """
         Call back for when the strategy receives a new tick.
         self.last_bar is automatically updated before this.
-        :param event: (MarketEvent)
-        :return:
         """
         raise NotImplementedError('Strategy.new_tick()')
 
@@ -60,8 +70,8 @@ class Strategy(object):
         """
         self.positions[fill_event.symbol] += fill_event.quantity
         self.cash -= fill_event.fill_cost
-        self.transactions_series.loc[len(self.transactions_series)] = [fill_event.fill_time, fill_event.quantity,
-                                                                       fill_event.fill_price, fill_event.symbol]
+        self.transactions_series[fill_event.symbol].loc[len(self.transactions_series)] = \
+            [fill_event.fill_time, fill_event.quantity, fill_event.fill_price, fill_event.symbol]
 
     @abstractmethod
     def new_fill(self, fill_event):
@@ -81,7 +91,6 @@ class Strategy(object):
         """
         raise NotImplementedError("Strategy.finished()")
 
-    # @abstractmethod
     def initialize(self, *args, **kwargs):
         """
         Initialize the strategy
@@ -99,6 +108,7 @@ class Strategy(object):
 
 
 class FuturesStrategy(Strategy):
+
     def __init__(self, events, data, products, initial_cash=0, continuous=True):
         super(FuturesStrategy, self).__init__(events, data, products, initial_cash)
         self.transactions_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
@@ -107,6 +117,7 @@ class FuturesStrategy(Strategy):
         for product in self.products:
             columns = ['dt', 'level_1_price_buy', 'level_1_price_sell', 'pos', 'cash']
             self.time_series[product.symbol] = pd.DataFrame(data=None, columns=columns)
+
 
     def new_tick_update(self, market_event):
         """
@@ -145,13 +156,15 @@ class FuturesStrategy(Strategy):
     #         self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
 
     def finished(self):
-        self.time_series.set_index('dt', inplace=True)
+        for symbol_time_series in self.time_series.values():
+            symbol_time_series.set_index('dt', inplace=True)
 
     def get_latest_bars(self, symbol, n=1):
 #         TODO: use datetime window instead
         if len(self.time_series[symbol]) < n:
             return self.time_series[symbol].ix[0:len(self.time_series[symbol])]
         return self.time_series[symbol].ix[len(self.time_series[symbol])-n:len(self.time_series[symbol])+1]
+
 
 class StockStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=1000000, price_field='Open'):
@@ -165,13 +178,11 @@ class StockStrategy(Strategy):
     def new_tick_update(self, market_event):
         self.curr_dt = market_event.dt
         self.last_bar = self.data.last_bar.copy()
-        print self.last_bar
         _mkt_prices = [self.last_bar[product.symbol][self.price_field] for product in self.products]
         _positions = [self.positions[product.symbol] for product in self.products]
         self.time_series.loc[len(self.time_series)] = [self.curr_dt] + _mkt_prices + _positions + [self.cash]
 
     def finished(self, save=False):
-        print 'finished stock backtest'
         for product in self.products:
             self.time_series[product.symbol] = self.time_series[product.symbol+'_pos']*\
                                                self.time_series[product.symbol+'_mkt']
@@ -181,10 +192,9 @@ class StockStrategy(Strategy):
         self.time_series.set_index('dt', inplace=True)
         self.transactions_series.set_index('dt', inplace=True)
         self.returns_series = self.time_series['total_val'].pct_change().fillna(0)
-
         positions_cols = [product.symbol for product in self.products] + ['cash']
-        self.positions_series = pd.DataFrame(np.array([self.time_series[product.symbol] for product in self.products] +
-                                              [self.time_series['cash']]
-                                             ).transpose(),
+        self.positions_series = pd.DataFrame(data=np.array([self.time_series[product.symbol]
+                                                            for product in self.products]
+                                                           +[self.time_series['cash']]).transpose(),
                                              columns=positions_cols,
                                              index=self.time_series.index)

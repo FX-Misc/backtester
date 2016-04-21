@@ -9,26 +9,23 @@ class BuyStrategy(FuturesStrategy):
         self.sym1 = products[0].symbol
         # self.sym2 = products[1].symbol
         self.fills = []
+        self.buy_int = 0
 
     def new_tick(self):
-        order = randint(1, 1000)
         sym1_order_qty = randint(1, 100)
-        sym2_order_qty = randint(-100, 100)
         temp_capital = self.cash
         if self._check_order(temp_capital, self.sym1, sym1_order_qty):
-            if order == 90:
-                self.order(self.gold, sym1_order_qty, type='MARKET', price=None, order_time=self.curr_dt)
+            if self.buy_int % 1000 == 0:
+                self.order(self.gold, sym1_order_qty, order_type='MARKET', price=None, order_time=self.curr_dt)
                 temp_capital -= self.last_bar[self.sym1]['level_1_price_buy'] * sym1_order_qty
                 temp_capital -= self.last_bar[self.sym1]['level_1_price_buy'] * sym1_order_qty
 
-        # if self._check_order(temp_capital, self.sym2, sym2_order_qty):
-        #     self.order(self.sym2, sym2_order_qty)
-        #     temp_capital -= self.last_bar[self.sym2][self.price_field] * sym2_order_qty
+        self.buy_int += 1
 
     def _check_order(self, capital, symbol, quantity):
         if self.last_bar[symbol]['level_1_price_buy'] * quantity < capital:
             return True
         return False
 
-    def new_fill(self):
+    def new_fill(self, fill_event):
         pass

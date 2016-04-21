@@ -11,6 +11,7 @@ from ib_live.ib_events import IBFillEvent
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))
 
+
 class TestIBExecutionHandler(unittest.TestCase):
 
     @classmethod
@@ -23,7 +24,9 @@ class TestIBExecutionHandler(unittest.TestCase):
             time.sleep(.1)
 
     def test_process_new_order_future(self):
-        order_event = OrderEvent(self.future , 1, 'MARKET', price=None, order_time=None)
+        if self.future.mkt_close < dt.datetime.now().time() < self.future.mkt_open:
+            return True
+        order_event = OrderEvent(self.future, 1, 'MARKET', price=None, order_time=None)
         self.execution.process_new_order(order_event)
         time.sleep(.5)
         fill = self.execution.fills.popleft()

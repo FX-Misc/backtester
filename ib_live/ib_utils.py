@@ -1,6 +1,8 @@
-import trading.futures_contract as fut
+import trading.futures_utils as fut
 from ib.ext.Contract import Contract
 
+def foo():
+    pass
 
 def create_ib_futures_contract_from_symbol(symbol):
     """
@@ -37,7 +39,7 @@ def create_ib_futures_contract(symbol, exp_month=1, exp_year=2016, exchange='NYM
     contract.m_secType = 'FUT'
     contract.m_expiry = expiry
     contract.m_exchange = exchange
-    contract.m_currency = 'USD'
+    contract.m_currency = currency
     return contract
 
 

@@ -1,5 +1,3 @@
-# import sys
-# import os
 import logging
 import random
 import numpy as np
@@ -7,12 +5,10 @@ import datetime as dt
 from data_utils.quantgo_utils import get_data_multi
 from events import CMEBacktestFillEvent
 from trading.execution_handler import ExecutionHandler
-# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Execution Handljer')
 
 
-# TODO: parameters instead of macros
 CME_HISTORICAL_ORDER_DELAY = dt.timedelta(seconds=.01)
 CME_HISTORICAL_TRANSACTION_COST = 0
 MARKET_ORDERS = True
@@ -28,16 +24,13 @@ class CMEBacktestExecutionHandler(ExecutionHandler):
         self.commission = commission if commission is not None else CME_HISTORICAL_TRANSACTION_COST
         self.resting_orders = []
         self.current_day_data = None
-        self.multi_data = False
-        if len(self.symbols) > 1:
-            self.multi_data = True
 
     def process_new_order(self, order_event):
         """
         Updates the current_day_data and places the order.
+        :param order_event: (OrderEvent)
         """
         self._check_day_data(order_event.order_time)
-        assert self.current_day_data is not None, "No data for current day!"
         self.place_order(order_event)
 
     def process_resting_orders(self, market_event):

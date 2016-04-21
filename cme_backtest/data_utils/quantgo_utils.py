@@ -136,18 +136,27 @@ def get_data_multi(symbols, date, download=False, save=True, parse_new=False, se
     :param end_time:
     :param concise:
 
-    :return: A Multi-Index DataFrame
+    :return: (Multi-Index DataFrame)
     """
+    # multi_data = {}
+    # for symbol in symbols:
+    #     multi_data[symbol] = get_data(symbol, date, download=download, save=save, parse_new=parse_new,
+    #                                   second_bars=second_bars, subscription=subscription,
+    #                                   start_time=start_time, end_time=end_time, concise=concise)
+    # return multi_data
     multi_data = {}
     if len(symbols) == 1:
-        multi_data[symbols[0]] = get_data(symbols[0], date, download, save, parse_new, second_bars, subscription, start_time, end_time, concise)
+        multi_data[symbols[0]] = get_data(symbols[0], date, download, save, parse_new, second_bars,
+                                          subscription, start_time, end_time, concise)
     else:
         for symbol in symbols:
-            data = get_data(symbol, date, download, save, parse_new, second_bars, subscription, start_time, end_time, concise)
+            data = get_data(symbol, date, download, save, parse_new, second_bars,
+                            subscription, start_time, end_time, concise)
             multi_data[symbol] = data
     multi_data = _reindex_data(multi_data)
-    reform = {(outerKey, innerKey): values for outerKey, innerDict in multi_data.iteritems() for innerKey, values in innerDict.iteritems()}
-    multi_data = pd.DataFrame(reform).ffill()  # make the multi-index DataFrame
+    reform = {(outerKey, innerKey): values for outerKey, innerDict in multi_data.iteritems()
+              for innerKey, values in innerDict.iteritems()}
+    multi_data = pd.DataFrame(reform).ffill()
     return multi_data
 
 
