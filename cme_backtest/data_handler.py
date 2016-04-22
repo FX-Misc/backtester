@@ -1,8 +1,9 @@
 import logging
+import pandas as pd
 import datetime as dt
 from trading.events import MarketEvent
 from trading.data_handler import BacktestDataHandler
-from cme_backtest.data_utils.quantgo_utils import get_data_multi, get_data
+from cme_backtest.data_utils.quantgo_utils import get_data_multi
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 
@@ -26,6 +27,20 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         self.last_bar = {}
         self._load_day_data()
 
+    # def _make_time_series_df(self, start_index, columns):
+    #     """
+    #     Creates an empty Multi-Index DataFrame to store time-series.
+    #     :return:
+    #     """
+    #     d = {product.symbol: pd.DataFrame(data=None,
+    #                                       columns=columns,
+    #                                       index=np.arange(start_index, start_index+BUFFER_SIZE, step=1))
+    #          for product in self.products}
+    #     reform = {(k_outer, k_inner): values for k_outer, d_inner in d.iteritems()
+    #               for k_inner, values in d_inner.iteritems()}
+    #     df = pd.DataFrame(reform)
+    #     return df
+
     def _load_day_data(self):
         """
         Updates the current_day_data.
@@ -34,7 +49,9 @@ class CMEBacktestDataHandler(BacktestDataHandler):
                                             download=False,
                                             second_bars=True,
                                             start_time=self.start_time,
-                                            end_time=self.end_time).iterrows()
+                                            end_time=self.end_time)
+
+        self.curr_day_data_it = self.curr_day_data.iterrows()
 
     def update(self):
         if self.curr_day > self.end_date:
@@ -51,6 +68,6 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         """
         Push the next tick from curr_day_data to latest_data (for all symbols).
         """
-        self.curr_dt, self.last_bar = next(self.curr_day_data)
-        # self.last_bar['index'] = self.curr_dt
+        timestamp, self.last_bar = next(self.curr_day_data_it)
+        self.curr_dt = timestamp.to_datetime()
         self.events.put(MarketEvent(self.curr_dt, self.last_bar))

@@ -2,7 +2,7 @@ import time
 import json
 from queue import Queue
 from ib_trade import IBTrade
-from strategies.paper_strategy import ClassifierStrategy
+# from strategies.paper_strategy import ClassifierStrategy
 # from strategies.buy_strategy_stock import BuyStrategy
 from strategies.buy_strategy_futures import BuyStrategy
 from ib_live.ib_data_handler import IBDataHandler

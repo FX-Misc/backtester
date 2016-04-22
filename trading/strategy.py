@@ -42,6 +42,7 @@ class Strategy(object):
         :param price: (float)
         :param order_time: (DateTime)
         """
+        order_time = order_time if order_time is not None else self.curr_dt
         order = OrderEvent(product, quantity, order_type, price, order_time)
         self.events.put(order)
 
@@ -64,19 +65,30 @@ class Strategy(object):
 
     def new_fill_update(self, fill_event):
         """
-        Updates positions.
+        Updates:
+            self.positions
+            self.cash
+            self.transactions_series
         :param fill_event: (FillEvent)
         """
-        self.positions[fill_event.symbol] += fill_event.quantity
-        self.cash -= fill_event.fill_cost
-        self.transactions_series[fill_event.symbol].loc[len(self.transactions_series)] = \
-            [fill_event.fill_time, fill_event.quantity, fill_event.fill_price, fill_event.symbol]
+
+        raise NotImplementedError(Strategy.new_fill_update())
+            # self.positions[fill_event.symbol] += fill_event.quantity
+        # self.cash -= fill_event.fill_cost
+        #
+        # transaction = [fill_event.fill_time, fill_event.quantity, fill_event.fill_price, fill_event.symbol]
+        # self.transactions_series[fill_event.symbol].loc[len(self.transactions_series)] = transaction
+
+
 
     @abstractmethod
     def new_fill(self, fill_event):
         """
         Call back for when an order placed by the strategy is filled.
-        self.positions, self.cash, and self.transactions_series are all automatically updated before this.
+        Updated before this callback:
+            self.positions
+            self.cash
+            self.transactions_series
         :param fill_event: (FillEvent)
         :return:
         """

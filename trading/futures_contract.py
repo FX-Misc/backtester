@@ -22,6 +22,7 @@ class FuturesContract(object):
         self.min_tick_value =  specs['Minimum Tick Value']
         self.full_point_value = specs['Full Point Value']
         self.terminal_point_value = ['Terminal Point Value']
+        self.contract_multiplier = self.full_point_value*self.terminal_point_value
 
         self.mkt_open, self.mkt_close = get_mkt_times(self.trading_times)
         self.ib_contract = create_ib_futures_contract(self.base_symbol,

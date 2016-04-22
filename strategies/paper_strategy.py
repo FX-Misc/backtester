@@ -3,10 +3,9 @@ import os
 import logging
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
-log = logging.getLogger('Portfolio')
-
-import tabulate
+log = logging.getLogger('Strategy')
 from queue import Queue
+import pandas as pd
 import datetime as dt
 import numpy as np
 import prediction.features as feats
@@ -24,6 +23,8 @@ granularity = 5
 hl = int(3840 / granularity)
 window = int(7680 / granularity)
 
+window_td = pd.Timedelta(seconds=int(7860/granularity))
+
 x_feats = [
     feats.mean_reversion_signal(hl, window),
     feats.ema_diff(window/2)
@@ -34,7 +35,7 @@ class ClassifierStrategy(FuturesStrategy):
     def initialize(self, contract_multiplier={}, transaction_costs={}, slippage=0, starting_cash=100000,
                    min_hold_time=dt.timedelta(minutes=15), max_hold_time=dt.timedelta(hours=2), start_date=None, end_date=None,
                    start_time=dt.time(hour=0), closing_time=dt.time(hour=23, minute=59), standardize=False, take_profit_threshold=None,
-                   take_profit_down_only=False, order_qty=1):
+                   take_profit_down_only=False, order_qty=1, *args, **kwargs):
 
         self.symbols = [product.symbol for product in self.products]
         self.symbol = self.symbols[0]
@@ -53,7 +54,6 @@ class ClassifierStrategy(FuturesStrategy):
         self.take_profit_threshold = take_profit_threshold
         self.take_profit_down_only = take_profit_down_only
         self.order_qty = order_qty
-
         self.retrain_period = 0
         self.last_order_time = {sym: None for sym in self.symbols}
         self.pos = {sym: 0 for sym in self.symbols}
@@ -85,11 +85,9 @@ class ClassifierStrategy(FuturesStrategy):
         bars.fillna(0, inplace=True)
 
     def new_tick(self):
-        bars = self.get_latest_bars(self.symbol, n=window)
-        display(bars.head(5))
+        bars = self.get_latest_bars(self.symbol, window=window_td)
         self.add_features(bars)
         bar = bars.iloc[-1]
-        self.update_metrics()
         for sym in self.symbols:
             try:
                 pos = self.implied_pos[sym]
@@ -171,10 +169,6 @@ class ClassifierStrategy(FuturesStrategy):
             self.entry_price[sym] = None
         else:
             self.entry_price[sym] = fill_event.fill_cost / float(fill_event.quantity)
-        self.cash -= self.contract_multiplier[sym] * fill_event.fill_cost - \
-                     self.transaction_costs[sym] * abs(fill_event.quantity) - \
-                     self.contract_multiplier[sym] * abs(fill_event.quantity) * self.slippage
-        self.orders[sym].append((self.curr_dt, fill_event.quantity, self.pos[sym], abs(fill_event.fill_cost / float(fill_event.quantity))))
 
     def update_metrics(self):
         pass
@@ -206,10 +200,6 @@ class ClassifierStrategy(FuturesStrategy):
         pass
 
 def run_forwardtest():
-    # parameters
-    #global BACKTEST_NAME
-    #if len(sys.argv) > 1:
-    #    BACKTEST_NAME = sys.argv[1]
     start_time = dt.time(hour=3)
     closing_time = dt.time(hour=20)
     standardize = False

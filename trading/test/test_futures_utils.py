@@ -55,7 +55,8 @@ class TestFuturesUtils(unittest.TestCase):
         self.assertEqual('GCM6', highest_volume_contract)
 
     def test_get_contract_specs(self):
-        specs = fut.get_contract_specs(self.symbol)
+        specs = fut.get_contract_specs('CL')
+        print specs
         self.assertEqual(specs['Name'], 'Gold-COMEX')
         self.assertEqual(specs['Exchange'], 'NYMEX')
         self.assertEqual(specs['Quandl Code'], 'CME/GC')

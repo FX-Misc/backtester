@@ -4,6 +4,7 @@ from ib.ext.Contract import Contract
 def foo():
     pass
 
+
 def create_ib_futures_contract_from_symbol(symbol):
     """
 
