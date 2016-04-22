@@ -1,7 +1,8 @@
 from random import randint
 from collections import OrderedDict
 from trading.events import OrderEvent
-from trading.strategy import StockStrategy
+from trading.stock_strategy import StockStrategy
+
 
 class BuyStrategy(StockStrategy):
     def __init__(self, events, data, products, initial_cash=1000000):

@@ -52,4 +52,5 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         Push the next tick from curr_day_data to latest_data (for all symbols).
         """
         self.curr_dt, self.last_bar = next(self.curr_day_data)
+        # self.last_bar['index'] = self.curr_dt
         self.events.put(MarketEvent(self.curr_dt, self.last_bar))

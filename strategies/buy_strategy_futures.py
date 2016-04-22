@@ -1,5 +1,6 @@
 from random import randint
-from trading.strategy import FuturesStrategy
+from trading.futures_strategy import FuturesStrategy
+
 
 class BuyStrategy(FuturesStrategy):
     def __init__(self, events, data, products, initial_cash=1000000):

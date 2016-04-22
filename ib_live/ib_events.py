@@ -17,9 +17,10 @@ class IBFillEvent(events.FillEvent):
         """
         super(IBFillEvent, self).__init__(fill_time=execution['time'],
                                           symbol=contract['symbol'],
-                                          exchange=execution['exchange'],
                                           quantity=execution['qty'],
+                                          fill_price=execution['avg_price'],
                                           fill_cost=execution['qty']*execution['avg_price'],
+                                          exchange=execution['exchange'],
                                           commission=0)
         # TODO: commission
         self.execution = execution

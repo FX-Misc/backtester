@@ -145,8 +145,18 @@ def get_data_multi(symbols, date, download=False, save=True, parse_new=False, se
             data = get_data(symbol, date, download, save, parse_new, second_bars,
                             subscription, start_time, end_time, concise)
             multi_data[symbol] = data
+
     multi_data = _reindex_data(multi_data)
-    reform = {(outerKey, innerKey): values for outerKey, innerDict in multi_data.iteritems()
+    return dict_to_df(multi_data)
+
+
+def dict_to_df(data):
+    """
+    Converts a dict of DataFrames to a multi-indexed DataFrame
+    :param data: (dict of DataFrames)
+    :return: (Multi-Indexed DataFrame)
+    """
+    reform = {(outerKey, innerKey): values for outerKey, innerDict in data.iteritems()
               for innerKey, values in innerDict.iteritems()}
     multi_data = pd.DataFrame(reform).ffill()
     return multi_data

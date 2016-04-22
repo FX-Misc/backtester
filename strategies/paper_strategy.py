@@ -12,7 +12,7 @@ import numpy as np
 import prediction.features as feats
 from trading.futures_contract import FuturesContract
 from cme_backtest.data_handler import CMEBacktestDataHandler
-from trading.strategy import FuturesStrategy
+from trading.futures_strategy import FuturesStrategy
 from cme_backtest.execution_handler import CMEBacktestExecutionHandler
 from cme_backtest.backtest import CMEBacktest
 
@@ -86,6 +86,7 @@ class ClassifierStrategy(FuturesStrategy):
 
     def new_tick(self):
         bars = self.get_latest_bars(self.symbol, n=window)
+        display(bars.head(5))
         self.add_features(bars)
         bar = bars.iloc[-1]
         self.update_metrics()
