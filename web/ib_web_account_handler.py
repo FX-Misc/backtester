@@ -55,6 +55,23 @@ class IBWebAccountHandler(IBConnection):
         self._init_account_fields()
         self._init_portfolio_fields()
 
+    def _req_mkt_data(self, ticker_id, contract):
+        """
+        tickerId (int) The ticker id. Must be a unique value. When the market data returns,
+                        it will be identified by this tag. This is also used when canceling the market data.
+        contract (Contract)	This class contains attributes used to describe the contract.
+        genericTicklist	(String) A comma delimited list of generic tick types.  Tick types can be found in
+                                the Generic Tick Types page.
+        snapshot (boolean) Check to return a single snapshot of market data and have the market data
+                          subscription cancel. Do not enter any genericTicklist values if you use snapshot.
+
+        :param ticker_id:
+        :param contract:
+        :return:
+        """
+        self.connection.reqMarketDataType(1)  # type 1 is for live data
+        self.connection.reqMktData(ticker_id, contract, "", False)
+
     def _init_account_fields(self):
         self.account_fields = {
             'CashBalance':          'cash_balance',
@@ -97,7 +114,6 @@ class IBWebAccountHandler(IBConnection):
                     pass
             except IndexError:
                 time.sleep(self.msg_interval)
-
 
     def _handle_update_account_value_msg(self, msg):
         account_field = self.account_fields[msg['key']]

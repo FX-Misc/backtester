@@ -7,33 +7,34 @@ from queue import Queue
 from flask import Flask, Response, render_template, make_response
 from collections import OrderedDict
 
-
 app = Flask(__name__)
 
 events = Queue()
 CONFIG = json.load(open('test_ib_config.json', 'r'))
-# ib_account_handler = IBWebAccountHandler(events, CONFIG)
+ib_account_handler = IBWebAccountHandler(events, CONFIG)
 # ib_data_handler = IBWebDataHandler(events, CONFIG)
 
 last_int = 500
 
-# @app.route('/')
-# def dashboard():
-#     return render_template('index.html', positions=ib_account_handler.portfolio.keys())
+@app.route('/')
+def dashboard():
+    return render_template('index.html', positions=ib_account_handler.portfolio.keys())
+    # return render_template('index.html')
+
 #
-# @app.route('/account_info')
-# def account_info():
-#     info = ib_account_handler.account_info
-#     response = make_response(json.dumps(info))
-#     response.content_type = 'application/json'
-#     return response
-#
-# @app.route('/portfolio_info')
-# def portfolio_info():
-#     info = ib_account_handler.portfolio
-#     response = make_response(json.dumps(info))
-#     response.content_type = 'application/json'
-#     return response
+@app.route('/account_info')
+def account_info():
+    info = ib_account_handler.account_info
+    response = make_response(json.dumps(info))
+    response.content_type = 'application/json'
+    return response
+
+@app.route('/portfolio_info')
+def portfolio_info():
+    info = ib_account_handler.portfolio
+    response = make_response(json.dumps(info))
+    response.content_type = 'application/json'
+    return response
 
 @app.route('/chart')
 def chart():
@@ -57,4 +58,4 @@ def random_data():
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True, port=4000)
+    app.run(debug=True, threaded=True)
