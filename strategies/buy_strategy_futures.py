@@ -13,15 +13,19 @@ class BuyStrategy(FuturesStrategy):
         self.buy_int = 0
 
     def new_tick(self):
-        sym1_order_qty = 1
-        temp_capital = self.cash
-        if self._check_order(temp_capital, self.sym1, sym1_order_qty):
-            if self.buy_int % 1000 == 0:
+        random_buy = randint(1, 10000)
+        if random_buy == 444:
+            random_direction = randint(0, 1)
+            if random_direction == 0:
+                sym1_order_qty = -1
+            else:
+                sym1_order_qty = 1
+            temp_capital = self.cash
+            if self._check_order(temp_capital, self.sym1, sym1_order_qty):
                 self.order(self.gold, sym1_order_qty, order_type='MARKET', price=None, order_time=self.curr_dt)
                 temp_capital -= self.last_bar[self.sym1]['level_1_price_buy'] * sym1_order_qty
                 temp_capital -= self.last_bar[self.sym1]['level_1_price_buy'] * sym1_order_qty
 
-        self.buy_int += 1
 
     def _check_order(self, capital, symbol, quantity):
         if self.last_bar[symbol]['level_1_price_buy'] * quantity < capital:

@@ -32,6 +32,8 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         self.orders = {}
         self.fills = deque()
 
+        log.info("IBExecutionHandler initialized!")
+
     def process_new_order(self, order_event):
         """
         Processes an IBOrderEvent (called from ), creates an (ib.ext.Order) and sends it to IB.

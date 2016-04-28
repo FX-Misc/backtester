@@ -16,7 +16,7 @@ class IBFillEvent(events.FillEvent):
         :param contract: (dict) contract details
         """
         super(IBFillEvent, self).__init__(fill_time=execution['time'],
-                                          symbol=contract['symbol'],
+                                          symbol=contract['ticker'],
                                           quantity=execution['qty'],
                                           fill_price=execution['avg_price'],
                                           fill_cost=execution['qty']*execution['avg_price'],

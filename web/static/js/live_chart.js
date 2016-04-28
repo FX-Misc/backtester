@@ -33,7 +33,7 @@ function chart() {
                         },
                         cache: false
                     });
-                    }, 1);
+                    }, 1000);
                 }
             }
         },

@@ -1,6 +1,11 @@
 $(document).ready(function() {
     console.log( "portfolio info ready!" );
     requestPortfolioInfo();
+
+    $("td.of_number_to_be_evaluated:contains('-')").addClass('red');
+    $("td.of_number_to_be_evaluated:contains('+')").addClass('green');
+
+
 });
 
 function requestPortfolioInfo() {

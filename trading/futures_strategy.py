@@ -12,15 +12,15 @@ class FuturesStrategy(Strategy):
     def __init__(self, events, data, products, initial_cash=0, continuous=True, live=False):
         super(FuturesStrategy, self).__init__(events, data, products, initial_cash)
 
-        self.sym_prods = {get_base_symbol_from_symbol(product.symbol): product for product in self.products}
+        # map ticker:product
+        self.ticker_prods = {product.symbol: product for product in self.products}
 
         self.pnl_series = []
 
+        self.transactions_series = []  #(fill_time, quantity, fill_price, ticker)
         # self.cash_series = pd.Series(data=None)
         # self.positions_series = {product.symbol: pd.Series(data=None) for product in self.products}
-        # self.transactions_series = {product.symbol: pd.DataFrame(data=None,
-        #                                                          columns=['dt', 'amount', 'price', 'symbol'])
-        #                             for product in self.products}
+        # self.transactions_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol']) for product in self.products}
         # self.time_series = self._make_time_series_df(0, columns=['dt', 'level_1_price_buy', 'level_1_price_sell'])
         # self.time_series_index = 0
         self.live = live
@@ -72,7 +72,7 @@ class FuturesStrategy(Strategy):
         else:
             self._new_tick_update_backtest(market_event)
         # self.curr_dt = market_event.dt
-        # self.last_bar = market_event.data
+        self.last_bar = market_event.data
         # self.time_series.iloc[self.time_series_index] = self.last_bar  # set the data
         # self.time_series_index += 1
         # if self.time_series_index == len(self.time_series):
@@ -81,12 +81,11 @@ class FuturesStrategy(Strategy):
         #     self.time_series = pd.DataFrame(pd.concat([self.time_series, empty_df], copy=False))
 
     def new_fill_update(self, fill_event):
-
         self.positions[fill_event.symbol] += fill_event.quantity
-        self.cash -= self.sym_prods[get_base_symbol_from_symbol(fill_event.symbol)]*fill_event.fill_cost
-
-        transaction = [fill_event.fill_time, fill_event.quantity, fill_event.fill_price, fill_event.symbol]
-        self.transactions_series[fill_event.symbol].loc[len(self.transactions_series)] = transaction
+        self.cash -= fill_event.fill_cost
+        #self.ticker_prods[get_base_symbol_from_symbol(fill_event.symbol)] * fill_event.fill_cost
+        transaction = (fill_event.fill_time, fill_event.quantity, fill_event.fill_price, fill_event.symbol)
+        self.transactions_series.append(transaction)
 
     def get_latest_bars(self, symbol, window, start=None):
         """
