@@ -12,7 +12,8 @@
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
     <option name="TEMPLATE_FOLDERS">
       <list>
-        <option value="$MODULE_DIR$/templates" />
+        <option value="$MODULE_DIR$/web/templates" />
+        <option value="$MODULE_DIR$/flask-live-charts-master/templates" />
       </list>
     </option>
   </component>

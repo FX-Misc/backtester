@@ -6,8 +6,8 @@ from queue import Queue
 from trading.events import OrderEvent
 from trading.stock import Stock
 from trading.futures_contract import FuturesContract
-from ib_live.ib_execution_handler import IBExecutionHandler
-from ib_live.ib_events import IBFillEvent
+from interactive_brokers.ib_execution_handler import IBExecutionHandler
+from interactive_brokers.ib_events import IBFillEvent
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))
 

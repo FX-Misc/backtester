@@ -1,21 +1,22 @@
+import random
 import time
 import logging
 import threading
 import datetime as dt
 from trading.data_handler import DataHandler
-from trading.events import MarketEvent
-from ib_live.ib_connection import IBConnection
+from interactive_brokers.ib_connection import IBConnection
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBDataHandler')
 
 
-class IBDataHandler(DataHandler, IBConnection):
+class IBWebDataHandler(IBConnection):
 
-    def __init__(self, events, products, config):
+    def __init__(self, events, config):
         self.events = events
-        self.products = products
+        # self.products = products
         self.port = config['PORT']
         self.client_id = config['DATA_CLIENT_ID']
+        self.client_id = random.randint(1000, 2000)
         DataHandler.__init__(self, self.events)
         IBConnection.__init__(self, self.events, self.port, self.client_id)
         self._initialize_handlers()
@@ -41,10 +42,10 @@ class IBDataHandler(DataHandler, IBConnection):
     def _initialize_handlers(self):
 
         self.reply_handlers = {
-            'error': super(IBDataHandler, self).handle_error_msg,
-            'connectionClosed': super(IBDataHandler, self).handle_connection_closed_msg,
-            'managedAccounts': super(IBDataHandler, self).handle_managed_accounts_msg,
-            'nextValidId': super(IBDataHandler, self).handle_next_valid_id_msg,
+            'error': super(IBWebDataHandler, self).handle_error_msg,
+            'connectionClosed': super(IBWebDataHandler, self).handle_connection_closed_msg,
+            'managedAccounts': super(IBWebDataHandler, self).handle_managed_accounts_msg,
+            'nextValidId': super(IBWebDataHandler, self).handle_next_valid_id_msg,
             'tickPrice': self._handle_tick_price,
             'tickSize': self._handle_tick_size,
             'tickGeneric': self._handle_tick_generic,
@@ -99,9 +100,6 @@ class IBDataHandler(DataHandler, IBConnection):
         """
         self.connection.reqMarketDataType(1)  # type 1 is for live data
         self.connection.reqMktData(ticker_id, contract, "", False)
-
-    def update(self):
-        self.events.put(MarketEvent(self.curr_dt, self.last_bar))
 
     def _reply_handler(self):
         """

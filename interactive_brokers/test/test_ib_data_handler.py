@@ -3,7 +3,7 @@ import time
 import unittest
 from queue import Queue
 from trading.futures_contract import FuturesContract
-from ib_live.ib_data_handler import IBDataHandler
+from interactive_brokers.ib_data_handler import IBDataHandler
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))
 

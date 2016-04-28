@@ -2,9 +2,9 @@ import unittest
 import time
 import json
 from queue import Queue
-from ib_live.ib_connection import IBConnection
-from ib_live.ib_execution_handler import create_order
-from ib_live.ib_utils import create_ib_futures_contract
+from interactive_brokers.ib_connection import IBConnection
+from interactive_brokers.ib_execution_handler import create_order
+from interactive_brokers.ib_utils import create_ib_futures_contract
 from ib.ext.Order import Order
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))

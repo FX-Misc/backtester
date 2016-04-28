@@ -5,8 +5,8 @@ from ib_trade import IBTrade
 # from strategies.paper_strategy import ClassifierStrategy
 # from strategies.buy_strategy_stock import BuyStrategy
 from strategies.buy_strategy_futures import BuyStrategy
-from ib_live.ib_data_handler import IBDataHandler
-from ib_live.ib_execution_handler import IBExecutionHandler
+from interactive_brokers.ib_data_handler import IBDataHandler
+from interactive_brokers.ib_execution_handler import IBExecutionHandler
 from trading.stock import Stock
 from trading.futures_contract import FuturesContract
 
