@@ -13,7 +13,6 @@ class BuyStrategy(FuturesStrategy):
         self.buy_int = 0
 
     def new_tick(self):
-        # print self.get_latest_bars(self.sym1)
         sym1_order_qty = 1
         temp_capital = self.cash
         if self._check_order(temp_capital, self.sym1, sym1_order_qty):

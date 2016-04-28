@@ -12,16 +12,17 @@ class FuturesContract(object):
         specs = get_contract_specs(self.base_symbol)
         self.name = specs['Name']
         self.exchange = specs['Exchange']
-        self.tick_value = specs['Tick Value']
+        self.tick_value = float(specs['Tick Value'])
         self.contract_size = specs['Contract Size']
         self.active = specs['Active']
         self.deliver_months = specs['Delivery Months']
         self.units = specs['Units']
         self.currency = specs['Currency']
         self.trading_times = specs['Trading Times']
-        self.min_tick_value =  specs['Minimum Tick Value']
-        self.full_point_value = specs['Full Point Value']
-        self.terminal_point_value = ['Terminal Point Value']
+        self.min_tick_value =  (specs['Minimum Tick Value'])
+        self.full_point_value = float(specs['Full Point Value'])
+        self.terminal_point_value = float(specs['Terminal Point Value'])
+
         self.contract_multiplier = self.full_point_value*self.terminal_point_value
 
         self.mkt_open, self.mkt_close = get_mkt_times(self.trading_times)
