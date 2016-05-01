@@ -479,8 +479,8 @@ def create_round_trip_tear_sheet(positions, transactions, sector_mappings=None, 
 
     print(trades.drop(['open_dt', 'close_dt', 'symbol'],
                       axis='columns').describe())
-    print('Percent of round trips profitable = {:.4}%'.format(
-          (trades.pnl > 0).mean() * 100))
+    print('Percent of round trips profitable = {:.4%}'.format(
+          (trades.pnl > 0).mean()))
 
     winning_round_trips = trades[trades.pnl > 0]
     losing_round_trips = trades[trades.pnl < 0]
