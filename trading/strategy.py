@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 from abc import ABCMeta, abstractmethod
 from trading.events import OrderEvent
@@ -33,6 +34,10 @@ class Strategy(object):
         self.last_bar = None
         self.initialize(*args, **kwargs)
 
+        logging.basicConfig(level=logging.INFO)
+        self.log = logging.getLogger(__name__)
+
+
     def order(self, product, quantity, order_type='MARKET', price=None, order_time=None):
         """
         Generate an order and place it into events.
@@ -44,6 +49,7 @@ class Strategy(object):
         """
         order_time = order_time if order_time is not None else self.curr_dt
         order = OrderEvent(product, quantity, order_type, price, order_time)
+        self.log.info(str(order))
         self.events.put(order)
 
     @abstractmethod

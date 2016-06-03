@@ -54,7 +54,7 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         self.curr_day_data_it = self.curr_day_data.iterrows()
 
     def update(self):
-        if self.curr_day > self.end_date:
+        if self.curr_day >= self.end_date:
             self.continue_backtest = False
             return
         try:
