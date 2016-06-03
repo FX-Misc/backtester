@@ -24,4 +24,3 @@ class TestCMEBacktestDataHandler(unittest.TestCase):
 
     def test_run_backtest(self):
         self.backtest.run()
-        print type(self.strategy.positions_series)

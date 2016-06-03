@@ -2,11 +2,28 @@ import logging
 from abc import ABCMeta, abstractmethod
 from trading.events import OrderEvent
 
-class Portfolio(object):
-    def __init__(self, products, initial_cash):
-        self.positions = {product.symbol: 0 for product in products}
-        self.cash = initial_cash
-        self.pnl = 0
+class Position(object):
+
+    def __init__(self, symbol):
+        self.symbol = symbol
+        self.quantity = 0
+        self.avg_cost = 0
+
+    def update_position(self, fill_event):
+        """
+        Update the quantity of position as well as the cost average.
+
+        :param fill_event: (FillEvent)
+        """
+        self.avg_cost = ((self.avg_cost*self.quantity)+(fill_event.fill_cost))/(self.quantity+fill_event.quantity)
+        self.quantity += fill_event.quantity
+
+    def __str__(self):
+        return "Quantity: {}, AvgCost: {}".format(self.quantity, self.avg_cost)
+
+    def __repr__(self):
+        return str(self)
+
 
 class Strategy(object):
 
@@ -29,12 +46,13 @@ class Strategy(object):
         self.products = products
         self.symbols = [product.symbol for product in self.products]
 
-        self.initial_cash = initial_cash
-        self.cash = initial_cash
         self.last_bar = None
         self.initialize(*args, **kwargs)
 
-        self.portfolio = Portfolio(self.products, self.initial_cash)
+        # self.portfolio = Portfolio(self.products, self.initial_cash)
+        self.positions = {product.symbol: Position(product.symbol) for product in self.products}
+        self.cash = initial_cash
+        self.pnl = 0
 
         self.price_series = {product.symbol: [] for product in self.products}
         self.positions_series = {product.symbol: [] for product in self.products}
@@ -63,6 +81,23 @@ class Strategy(object):
         self.log.info(str(order))
         self.events.put(order)
 
+    def new_fill_update(self, fill_event):
+        """
+        Updates internals on a new fill.
+        Update:
+            - current cash
+            - current positions
+            - transactions series
+
+        :param fill_event: (FillEvent)
+        """
+
+        self.cash -= fill_event.fill_cost
+        self.positions[fill_event.symbol].update_position(fill_event)
+        self.transactions_series.append(fill_event)
+        self.log.info(str(fill_event))
+        self.log.info(self.positions)
+
     @abstractmethod
     def new_tick_update(self, market_event):
         """
@@ -79,22 +114,6 @@ class Strategy(object):
         self.last_bar is automatically updated before this.
         """
         raise NotImplementedError('Strategy.new_tick()')
-
-    def new_fill_update(self, fill_event):
-        """
-        Updates internals on a new fill.
-        Update:
-            - current cash
-            - current positions
-            - transactions series
-
-        :param fill_event: (FillEvent)
-        """
-
-        self.cash -= fill_event.fill_cost
-        self.positions[fill_event.symbol] += fill_event.quantity
-        self.transactions_series.append(fill_event)
-        self.log.info(str(fill_event))
 
     @abstractmethod
     def new_fill(self, fill_event):

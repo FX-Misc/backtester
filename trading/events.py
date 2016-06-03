@@ -65,12 +65,12 @@ class OrderEvent(Event):
         self.order_time = order_time if order_time is not None else dt.datetime.now()
 
     def __str__(self):
-        return "ORDER | Symbol: {}, Type: {}, Qty: {}, Time: {}"\
-            .format(self.symbol, self.order_type, self.quantity, self.order_time)
+        return "ORDER | Time: {}, Symbol: {}, Type: {}, Qty: {}"\
+            .format(self.order_time, self.symbol, self.order_type, self.quantity)
 
     @classmethod
     def from_json(cls):
-        raise NotImplementedError()
+        raise NotImplementedError('OrderEvent.from_json()')
 
 
 class FillEvent(Event):
@@ -96,3 +96,8 @@ class FillEvent(Event):
         self.fill_cost = fill_cost
         self.exchange = exchange
         self.commission = commission
+
+    def __str__(self):
+        return "FILL | Time: {}, Symbol: {}, Qty: {}, Price: {}, Cost: {}, Commission: {} "\
+            .format(self.fill_time, self.symbol, self.quantity, self.fill_price, self.fill_cost, self.commission)
+
