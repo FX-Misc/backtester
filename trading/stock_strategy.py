@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-
 from trading.strategy import Strategy
 
 
@@ -12,6 +11,9 @@ class StockStrategy(Strategy):
         position_columns = [product.symbol+'_pos' for product in self.products]
         columns = ['dt'] + mkt_price_columns + position_columns + ['cash']
         self.time_series = pd.DataFrame(data=None, columns=columns)
+
+    def new_fill_update(self, fill_event):
+        pass
 
     def new_tick_update(self, market_event):
         self.curr_dt = market_event.dt

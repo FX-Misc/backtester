@@ -12,13 +12,6 @@ class Event(object):
     """
     __metaclass__ = ABCMeta
 
-    @abstractmethod
-    def info(self):
-        """
-        For logging purposes.
-        :return: (dict)
-        """
-        raise NotImplementedError("Event.info()")
 
 class MarketEvent(Event):
     """
@@ -72,18 +65,8 @@ class OrderEvent(Event):
         self.order_time = order_time if order_time is not None else dt.datetime.now()
 
     def __str__(self):
-        # order_type = 'Buy' if self.order_type == 1 else 'Sell'
         return "ORDER | Symbol: {}, Type: {}, Qty: {}, Time: {}"\
             .format(self.symbol, self.order_type, self.quantity, self.order_time)
-
-    def info(self):
-        return {
-            'dt': self.order_time.strftime("%-m/%-d/%Y %H:%M"),
-            'type': self.order_type,
-            'symbol': self.symbol,
-            'quantity': self.quantity,
-            'price': self.price,
-        }
 
     @classmethod
     def from_json(cls):
@@ -113,13 +96,3 @@ class FillEvent(Event):
         self.fill_cost = fill_cost
         self.exchange = exchange
         self.commission = commission
-
-    def info(self):
-        return {
-            'dt': self.fill_time.strftime(("%-m/%-d/%Y %H:%M")),
-            'symbol': self.symbol,
-            'quantity': self.quantity,
-            'cost': self.fill_cost,
-            'exchange': self.exchange,
-            'commission': self.commission
-        }

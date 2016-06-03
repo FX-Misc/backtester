@@ -56,7 +56,6 @@ def create_ib_stock_contract(symbol, exch='NASDAQ', prim_exch='NASDAQ', curr='US
     contract.m_exchange = exch
     contract.m_primaryExch = prim_exch
     contract.m_currency = curr
-    print contract.__dict__
     return contract
 
 
