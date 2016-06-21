@@ -23,7 +23,6 @@ class CMEBacktest(Backtest):
                 self.data.update()
             else:
                 self.strategy.finished()
-                print 'Backtest finished.'
                 return
             while True:
                 try:

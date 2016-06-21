@@ -12,13 +12,6 @@ class Event(object):
     """
     __metaclass__ = ABCMeta
 
-    @abstractmethod
-    def info(self):
-        """
-        For logging purposes.
-        :return: (dict)
-        """
-        raise NotImplementedError("Event.info()")
 
 class MarketEvent(Event):
     """
@@ -72,21 +65,12 @@ class OrderEvent(Event):
         self.order_time = order_time if order_time is not None else dt.datetime.now()
 
     def __str__(self):
-        return "ORDER | Symbol: {}, Qty: {}, Type: {}, Time: {}"\
-            .format(self.symbol, self.quantity, self.quantity, self.order_type, self.order_time)
-
-    def info(self):
-        return {
-            'dt': self.order_time.strftime("%-m/%-d/%Y %H:%M"),
-            'type': self.order_type,
-            'symbol': self.symbol,
-            'quantity': self.quantity,
-            'price': self.price,
-        }
+        return "ORDER | Time: {}, Symbol: {}, Type: {}, Qty: {}"\
+            .format(self.order_time, self.symbol, self.order_type, self.quantity)
 
     @classmethod
     def from_json(cls):
-        raise NotImplementedError()
+        raise NotImplementedError('OrderEvent.from_json()')
 
 
 class FillEvent(Event):
@@ -113,12 +97,7 @@ class FillEvent(Event):
         self.exchange = exchange
         self.commission = commission
 
-    def info(self):
-        return {
-            'dt': self.fill_time.strftime(("%-m/%-d/%Y %H:%M")),
-            'symbol': self.symbol,
-            'quantity': self.quantity,
-            'cost': self.fill_cost,
-            'exchange': self.exchange,
-            'commission': self.commission
-        }
+    def __str__(self):
+        return "FILL | Time: {}, Symbol: {}, Qty: {}, Price: {}, Cost: {}, Commission: {} "\
+            .format(self.fill_time, self.symbol, self.quantity, self.fill_price, self.fill_cost, self.commission)
+

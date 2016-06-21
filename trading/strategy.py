@@ -1,6 +1,28 @@
-import pandas as pd
+import logging
 from abc import ABCMeta, abstractmethod
 from trading.events import OrderEvent
+
+class Position(object):
+
+    def __init__(self, symbol):
+        self.symbol = symbol
+        self.quantity = 0
+        self.avg_cost = 0
+
+    def update_position(self, fill_event):
+        """
+        Update the quantity of position as well as the cost average.
+
+        :param fill_event: (FillEvent)
+        """
+        self.avg_cost = ((self.avg_cost*self.quantity)+(fill_event.fill_cost))/(self.quantity+fill_event.quantity)
+        self.quantity += fill_event.quantity
+
+    def __str__(self):
+        return "Quantity: {}, AvgCost: {}".format(self.quantity, self.avg_cost)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Strategy(object):
@@ -22,21 +44,33 @@ class Strategy(object):
         self.events = events
         self.data = data
         self.products = products
-        self.curr_dt = None
-        self.positions = {product.symbol: 0 for product in self.products}
-        self.positions_series = {product.symbol: pd.DataFrame(data=None, columns=['dt', 'pos'])
-                                 for product in self.products}
-        self.transactions_series = pd.DataFrame(data=None, columns=['dt', 'amount', 'price', 'symbol'])
-        self.initial_cash = initial_cash
-        self.cash = initial_cash
-        self.curr_pnl = 0
+        self.symbols = [product.symbol for product in self.products]
+
         self.last_bar = None
         self.initialize(*args, **kwargs)
 
+        # self.portfolio = Portfolio(self.products, self.initial_cash)
+        self.positions = {product.symbol: Position(product.symbol) for product in self.products}
+        self.cash = initial_cash
+        self.pnl = 0
+
+        self.price_series = {product.symbol: [] for product in self.products}
+        self.positions_series = {product.symbol: [] for product in self.products}
+        self.transactions_series = []
+        self.pnl_series = []
+        self.cash_series = []
+
+        self.curr_dt = None
+
+        logging.basicConfig(level=logging.INFO)
+        self.log = logging.getLogger(__name__)
+
+
     def order(self, product, quantity, order_type='MARKET', price=None, order_time=None):
         """
-        Generate an order and place it into events.
-        :param product: (FuturesContract)
+        Generate and send an order to be executed.
+
+        :param product: (Product) FuturesContract or Stock
         :param order_type: (str) 'MARKET' or 'LIMIT'
         :param quantity: (int)
         :param price: (float)
@@ -44,7 +78,25 @@ class Strategy(object):
         """
         order_time = order_time if order_time is not None else self.curr_dt
         order = OrderEvent(product, quantity, order_type, price, order_time)
+        self.log.info(str(order))
         self.events.put(order)
+
+    def new_fill_update(self, fill_event):
+        """
+        Updates internals on a new fill.
+        Update:
+            - current cash
+            - current positions
+            - transactions series
+
+        :param fill_event: (FillEvent)
+        """
+
+        self.cash -= fill_event.fill_cost
+        self.positions[fill_event.symbol].update_position(fill_event)
+        self.transactions_series.append(fill_event)
+        self.log.info(str(fill_event))
+        self.log.info(self.positions)
 
     @abstractmethod
     def new_tick_update(self, market_event):
@@ -63,34 +115,19 @@ class Strategy(object):
         """
         raise NotImplementedError('Strategy.new_tick()')
 
-    def new_fill_update(self, fill_event):
-        """
-        Updates:
-            self.positions
-            self.cash
-            self.transactions_series
-        :param fill_event: (FillEvent)
-        """
-
-        raise NotImplementedError(Strategy.new_fill_update())
-            # self.positions[fill_event.symbol] += fill_event.quantity
-        # self.cash -= fill_event.fill_cost
-        #
-        # transaction = [fill_event.fill_time, fill_event.quantity, fill_event.fill_price, fill_event.symbol]
-        # self.transactions_series[fill_event.symbol].loc[len(self.transactions_series)] = transaction
-
-
-
     @abstractmethod
     def new_fill(self, fill_event):
         """
         Call back for when an order placed by the strategy is filled.
+        This should be implemented by the strategy.
+
+        new_fill_update is called prior to this callback.
         Updated before this callback:
             self.positions
             self.cash
             self.transactions_series
+
         :param fill_event: (FillEvent)
-        :return:
         """
         raise NotImplementedError("Strategy.new_fill()")
 
