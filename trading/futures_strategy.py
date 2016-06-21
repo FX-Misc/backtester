@@ -46,7 +46,6 @@ class FuturesStrategy(Strategy):
         :return:
         """
 
-
     def _new_tick_update_live(self, market_event):
         """
         Stream the data into a buffer.
@@ -108,42 +107,7 @@ class FuturesStrategy(Strategy):
     def _get_latest_bars_live(self):
         pass
 
-
     def finished(self):
         pass
         # for symbol_time_series in self.time_series.values():
         #     symbol_time_series.set_index('dt', inplace=True)
-
-# self.time_series.ix[self.time_series_index] = self.curr_dt    # set the dt index
-# self.time_series.append(market_event.data, ignore_index=True)
-# display(self.time_series.iat[len(self.time_series):])
-# self.time_series.iat[len(self.time_series):] = market_event.data
-# print self.time_series.tail(1)
-# self.last_bar = self.data.last_bar.copy()
-# for product in self.products:
-#     mkt_bid = self.last_bar[product.symbol]['level_1_price_buy']
-#     mkt_ask = self.last_bar[product.symbol]['level_1_price_sell']
-#     pos = self.positions[product.symbol]
-#     self.time_series[product.symbol].loc[len(self.time_series[product.symbol])] = \
-#         [self.curr_dt, mkt_bid, mkt_ask, pos, self.cash] + \
-#         [0]*(len(self.time_series[product.symbol].keys())-5)
-
-# add placeholder for any features that need to be calculates
-# for product in self.products:
-#     # self.time_series[product.symbol+'_mkt'].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
-#     mkt_price = (self.last_bar[product.symbol]['level_1_price_buy'] + self.last_bar[product.symbol]['level_1_price_sell'])/2.
-#     pnl_ = self.cash + sum([self.positions[product.symbol] * product.tick_value * (self.last_bar[product.symbol]['level_1_price_buy']
-#                             if self.positions[product.symbol] < 0
-#                             else self.last_bar['level_1_price_sell']) for product.symbol in self.products])
-#     # self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
-# def update_metrics(self):
-#     last_bar = self.get_latest_bars(self.symbol, n=1)
-#     pnl_ = self.cash + sum([self.pos[sym] * self.contract_multiplier[sym] *
-#                             (last_bar['level_1_price_buy']
-#                              if self.pos[sym] < 0 else
-#                              last_bar['level_1_price_sell']) for sym in self.symbols])
-#     self.pnl.append(pnl_)
-#     self.time_series.append(self.cur_time)
-#     for sym in self.symbols:
-#         self.price_series[sym].append((last_bar['level_1_price_buy'] + last_bar['level_1_price_sell']) / 2.)
-#         self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])

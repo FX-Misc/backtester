@@ -27,19 +27,6 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         self.last_bar = {}
         self._load_day_data()
 
-    # def _make_time_series_df(self, start_index, columns):
-    #     """
-    #     Creates an empty Multi-Index DataFrame to store time-series.
-    #     :return:
-    #     """
-    #     d = {product.symbol: pd.DataFrame(data=None,
-    #                                       columns=columns,
-    #                                       index=np.arange(start_index, start_index+BUFFER_SIZE, step=1))
-    #          for product in self.products}
-    #     reform = {(k_outer, k_inner): values for k_outer, d_inner in d.iteritems()
-    #               for k_inner, values in d_inner.iteritems()}
-    #     df = pd.DataFrame(reform)
-    #     return df
 
     def _load_day_data(self):
         """
@@ -54,7 +41,7 @@ class CMEBacktestDataHandler(BacktestDataHandler):
         self.curr_day_data_it = self.curr_day_data.iterrows()
 
     def update(self):
-        if self.curr_day > self.end_date:
+        if self.curr_day >= self.end_date:
             self.continue_backtest = False
             return
         try:

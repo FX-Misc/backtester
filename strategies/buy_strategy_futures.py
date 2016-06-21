@@ -6,9 +6,8 @@ class BuyStrategy(FuturesStrategy):
     def __init__(self, events, data, products, initial_cash=1000000):
         super(BuyStrategy, self).__init__(events, data, products, initial_cash)
         self.curr_dt = None
-        self.gold = products[0]
+        self.prod1 = products[0]
         self.sym1 = products[0].symbol
-        # self.sym2 = products[1].symbol
         self.fills = []
         self.buy_int = 0
 
@@ -22,7 +21,7 @@ class BuyStrategy(FuturesStrategy):
                 sym1_order_qty = 1
             temp_capital = self.cash
             if self._check_order(temp_capital, self.sym1, sym1_order_qty):
-                self.order(self.gold, sym1_order_qty, order_type='MARKET', price=None, order_time=self.curr_dt)
+                self.order(self.prod1, sym1_order_qty, order_type='MARKET', price=None, order_time=self.curr_dt)
                 temp_capital -= self.last_bar[self.sym1]['level_1_price_buy'] * sym1_order_qty
                 temp_capital -= self.last_bar[self.sym1]['level_1_price_buy'] * sym1_order_qty
 
