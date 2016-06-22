@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 import datetime as dt
 from trading.events import MarketEvent
 from trading.data_handler import BacktestDataHandler
@@ -37,7 +36,6 @@ class CMEBacktestDataHandler(BacktestDataHandler):
                                             second_bars=True,
                                             start_time=self.start_time,
                                             end_time=self.end_time)
-
         self.curr_day_data_it = self.curr_day_data.iterrows()
 
     def update(self):
