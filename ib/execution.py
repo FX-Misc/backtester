@@ -6,16 +6,16 @@ import threading
 from collections import deque
 from ib.ext.Order import Order
 from trading.execution import ExecutionHandler
-from ib_connection import IBConnection
-from ib_utils import get_contract_details, get_execution_details, create_ib_futures_contract_from_symbol
-from ib_events import IBFillEvent
+from connection import IBConnection
+from utils import get_contract_details, get_execution_details, create_ib_futures_contract_from_symbol
+from events import IBFillEvent
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBExecutionHandler')
 
 
-class IBExecutionHandler(ExecutionHandler, IBConnection):
+class IBExecution(ExecutionHandler, IBConnection):
 
     def __init__(self, events, config):
         self.events = events
@@ -67,10 +67,10 @@ class IBExecutionHandler(ExecutionHandler, IBConnection):
         :return:
         """
         reply_handlers = {
-            'connectionClosed': super(IBExecutionHandler, self).handle_connection_closed_msg,
-            'error': super(IBExecutionHandler, self).handle_error_msg,
-            'managedAccounts': super(IBExecutionHandler, self).handle_managed_accounts_msg,
-            'nextValidId': super(IBExecutionHandler, self).handle_next_valid_id_msg,
+            'connectionClosed': super(IBExecution, self).handle_connection_closed_msg,
+            'error': super(IBExecution, self).handle_error_msg,
+            'managedAccounts': super(IBExecution, self).handle_managed_accounts_msg,
+            'nextValidId': super(IBExecution, self).handle_next_valid_id_msg,
             'execDetails': self.handle_exec_details_msg,
             'openOrder': self.handle_open_order_msg,
             'orderStatus': self.handle_order_status_msg,

@@ -1,6 +1,6 @@
 import datetime as dt
 from futures_utils import build_contract, get_contract_specs, get_mkt_times
-from interactive_brokers.ib_utils import create_ib_futures_contract
+from ib.utils import create_ib_futures_contract
 
 class FuturesContract(object):
     def __init__(self, base_symbol, exp_year=None, exp_month=None, continuous=False):

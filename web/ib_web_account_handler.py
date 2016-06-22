@@ -3,8 +3,8 @@ import time
 import threading
 import logging
 import datetime as dt
-from interactive_brokers.ib_connection import IBConnection
-from interactive_brokers.ib_utils import get_contract_ticker, get_contract_details
+from ib.connection import IBConnection
+from ib.utils import get_contract_ticker, get_contract_details
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBConnection')
@@ -23,15 +23,15 @@ class IBWebAccountHandler(IBConnection):
 
         self._req_account_updates()
         self.account_info = {
-            'cash_balance':     0, #CashBalance
-            'available_funds':  0, #AvailableFunds
-            'buying_power':     0, #BuyingPower
-            'excess_liquidity': 0, #ExcessLiquidity
+            'cash_balance':     0, # CashBalance
+            'available_funds':  0, # AvailableFunds
+            'buying_power':     0, # BuyingPower
+            'excess_liquidity': 0, # ExcessLiquidity
             'margin_maint_req': 0, # FullMaintMarginReq
-            'futures_pnl':      0,  #FuturesPNL
+            'futures_pnl':      0, # FuturesPNL
             'net_liquidation':  0,
-            'unrealized_pnl':   0, #UnrealizedPnL
-            'realized_pnl':     0, #RealizedPnL
+            'unrealized_pnl':   0, # UnrealizedPnL
+            'realized_pnl':     0, # RealizedPnL
         }
 
         self.portfolio = {}

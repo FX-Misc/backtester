@@ -3,7 +3,7 @@ import time
 import unittest
 from queue import Queue
 from trading.futures_contract import FuturesContract
-from interactive_brokers.ib_data_handler import IBDataHandler
+from ib.data import IBData
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))
 
@@ -15,7 +15,7 @@ class TestIBDataHandler(unittest.TestCase):
         cls.events = Queue()
         cls.products = [FuturesContract('GC', exp_year=2016, exp_month=6)]
         cls.gold_symbol = cls.products[0].symbol
-        cls.data = IBDataHandler(cls.events, cls.products, CONFIG)
+        cls.data = IBData(cls.events, cls.products, CONFIG)
         while cls.data.next_valid_order_id is -1:
             time.sleep(.1)
 

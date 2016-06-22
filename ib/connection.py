@@ -16,7 +16,6 @@ class IBConnection(object):
         self.events = events
         self.port = port
         self.client_id = client_id
-        print 'ib connection', self.client_id
         self.account = ""
         self.connection = self._connect_ib()
 

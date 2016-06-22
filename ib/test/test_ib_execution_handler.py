@@ -6,8 +6,8 @@ from queue import Queue
 from trading.events import OrderEvent
 from trading.stock import Stock
 from trading.futures_contract import FuturesContract
-from interactive_brokers.ib_execution_handler import IBExecutionHandler
-from interactive_brokers.ib_events import IBFillEvent
+from ib.execution import IBExecution
+from ib.events import IBFillEvent
 
 CONFIG = json.load(open('test_ib_config.json', 'r'))
 
@@ -17,7 +17,7 @@ class TestIBExecutionHandler(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.events = Queue()
-        cls.execution = IBExecutionHandler(cls.events, CONFIG)
+        cls.execution = IBExecution(cls.events, CONFIG)
         cls.future = FuturesContract('GC', exp_year=2016, exp_month=6)
         cls.stock = Stock('AAPL')
         while cls.execution.next_valid_order_id is -1:

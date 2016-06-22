@@ -4,12 +4,12 @@ import threading
 import datetime as dt
 from trading.data import DataHandler
 from trading.events import MarketEvent
-from interactive_brokers.ib_connection import IBConnection
+from ib.connection import IBConnection
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBDataHandler')
 
 
-class IBDataHandler(DataHandler, IBConnection):
+class IBData(DataHandler, IBConnection):
 
     def __init__(self, events, products, config):
         self.events = events
@@ -43,10 +43,10 @@ class IBDataHandler(DataHandler, IBConnection):
     def _initialize_handlers(self):
 
         self.reply_handlers = {
-            'error': super(IBDataHandler, self).handle_error_msg,
-            'connectionClosed': super(IBDataHandler, self).handle_connection_closed_msg,
-            'managedAccounts': super(IBDataHandler, self).handle_managed_accounts_msg,
-            'nextValidId': super(IBDataHandler, self).handle_next_valid_id_msg,
+            'error': super(IBData, self).handle_error_msg,
+            'connectionClosed': super(IBData, self).handle_connection_closed_msg,
+            'managedAccounts': super(IBData, self).handle_managed_accounts_msg,
+            'nextValidId': super(IBData, self).handle_next_valid_id_msg,
             'tickPrice': self._handle_tick_price,
             'tickSize': self._handle_tick_size,
             'tickGeneric': self._handle_tick_generic,
