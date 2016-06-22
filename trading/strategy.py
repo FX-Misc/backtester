@@ -34,7 +34,7 @@ class Strategy(object):
         self.last_bar = None
         self.positions = {product.symbol: Position(product.symbol) for product in self.products}
         self.cash = initial_cash
-        self.pnl = 0
+        self.pnl_realized = 0
 
         # store for analysis
         self.price_series = {product.symbol: [] for product in self.products}
@@ -42,7 +42,6 @@ class Strategy(object):
         self.transactions_series = []
         self.pnl_series = []
         self.cash_series = []
-
 
         # logging
         logging.basicConfig(level=logging.INFO)
@@ -124,9 +123,20 @@ class Strategy(object):
             return self._get_latest_bars_live()
 
     def new_fill_update(self, fill_event):
+        """
+        Internal update on new fill.
+        Updates:
+            - current positions
+            - current cash
+            - transactions log
+            - pnl_realized
+
+        :param fill_event: (FillEvent))
+        """
         self.positions[fill_event.symbol].update(fill_event)
         self.cash -= fill_event.fill_cost
         self.transactions_series.append(fill_event)
+        self.pnl_realized = sum(position.pnl_realized for position in self.positions.values())
 
     def _get_latest_bars_backtest(self, symbol, window, start):
         before = start - window
@@ -140,12 +150,3 @@ class Strategy(object):
         Initialize the strategy
         """
         pass
-
-    # @abstractmethod
-    # def new_day(self, event):
-    #     """
-    #     Call back for when the strategy receives a tick that is a new day.
-    #     :param event:
-    #     :return:
-    #     """
-    #     raise NotImplementedError("new_day()")

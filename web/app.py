@@ -21,7 +21,7 @@ def dashboard():
     return render_template('index.html', positions=ib_account_handler.portfolio.keys())
     # return render_template('index.html')
 
-#
+
 @app.route('/account_info')
 def account_info():
     info = ib_account_handler.account_info

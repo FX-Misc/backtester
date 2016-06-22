@@ -56,7 +56,6 @@ class TestFuturesUtils(unittest.TestCase):
 
     def test_get_contract_specs(self):
         specs = fut.get_contract_specs('CL')
-        print specs
         self.assertEqual(specs['Name'], 'Gold-COMEX')
         self.assertEqual(specs['Exchange'], 'NYMEX')
         self.assertEqual(specs['Quandl Code'], 'CME/GC')
