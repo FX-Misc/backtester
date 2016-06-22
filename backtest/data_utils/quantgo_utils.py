@@ -3,9 +3,9 @@ import re
 import pandas as pd
 import datetime as dt
 from dateutil.rrule import rrule, DAILY
-from cme_backtest.data_utils.data_aggregation import make_second_bars, make_concise
-from cme_backtest.data_utils.data_path import get_file_path
-from cme_backtest.data_utils.quantgo_download import download_data
+from backtest.data_utils.data_aggregation import make_second_bars, make_concise
+from backtest.data_utils.data_path import get_file_path
+from backtest.data_utils.quantgo_download import download_data
 
 
 def _convert_time(date_str, time_str):

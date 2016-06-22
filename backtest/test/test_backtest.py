@@ -2,9 +2,9 @@ import unittest
 import datetime as dt
 from queue import Queue
 from trading.futures_contract import FuturesContract
-from cme_backtest.backtest import CMEBacktest
-from cme_backtest.data_handler import CMEBacktestDataHandler
-from cme_backtest.execution_handler import CMEBacktestExecutionHandler
+from backtest.backtest import CMEBacktest
+from backtest.data_handler import CMEBacktestDataHandler
+from backtest.execution_handler import CMEBacktestExecutionHandler
 from strategies.buy_strategy_futures import BuyStrategy
 
 

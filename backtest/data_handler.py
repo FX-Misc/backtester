@@ -2,7 +2,7 @@ import logging
 import datetime as dt
 from trading.events import MarketEvent
 from trading.data_handler import BacktestDataHandler
-from cme_backtest.data_utils.quantgo_utils import get_data_multi
+from data_utils.quantgo_utils import get_data_multi
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 

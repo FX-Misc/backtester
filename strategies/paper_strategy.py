@@ -10,10 +10,10 @@ import datetime as dt
 import numpy as np
 import prediction.features as feats
 from trading.futures_contract import FuturesContract
-from cme_backtest.data_handler import CMEBacktestDataHandler
+from backtest.data_handler import CMEBacktestDataHandler
 from trading.futures_strategy import FuturesStrategy
-from cme_backtest.execution_handler import CMEBacktestExecutionHandler
-from cme_backtest.backtest import CMEBacktest
+from backtest.execution_handler import CMEBacktestExecutionHandler
+from backtest.backtest import CMEBacktest
 
 NOT_UPDATING_FEATURES = False
 BACKTEST_NAME = None

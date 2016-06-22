@@ -124,7 +124,7 @@ class Strategy(object):
             return self._get_latest_bars_live()
 
     def new_fill_update(self, fill_event):
-        self.positions[fill_event.symbol].update_position(fill_event)
+        self.positions[fill_event.symbol].update(fill_event)
         self.cash -= fill_event.fill_cost
         self.transactions_series.append(fill_event)
 

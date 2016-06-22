@@ -1,6 +1,6 @@
 import unittest
 import datetime as dt
-from cme_backtest.data_handler import CMEBacktestDataHandler
+from backtest.data_handler import CMEBacktestDataHandler
 from Queue import Queue
 
 class TestCMEBacktest(unittest.TestCase):

@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from prediction.featutils import add_log_returns, standardize_features, add_mid_price
-from cme_backtest.data_utils.data_path import get_file_path, get_date_and_sym
+from backtest.data_utils.data_path import get_file_path, get_date_and_sym
 import statsmodels.api as sm
 
 """
