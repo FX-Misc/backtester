@@ -3,7 +3,7 @@ import time
 import logging
 import threading
 import datetime as dt
-from trading.data_handler import DataHandler
+from trading.data import DataHandler
 from interactive_brokers.ib_connection import IBConnection
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('IBDataHandler')

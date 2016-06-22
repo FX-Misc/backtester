@@ -4,7 +4,7 @@ import numpy as np
 import datetime as dt
 from data_utils.quantgo_utils import get_data_multi
 from events import CMEBacktestFillEvent
-from trading.execution_handler import ExecutionHandler
+from trading.execution import ExecutionHandler
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Execution Handler')
 
@@ -15,9 +15,9 @@ MARKET_ORDERS = True
 LIMIT_FILL_PROBABILITY = 0.1
 
 
-class CMEBacktestExecutionHandler(ExecutionHandler):
+class BacktestExecution(ExecutionHandler):
     def __init__(self, events, products, second_bars=True, commission=None):
-        super(CMEBacktestExecutionHandler, self).__init__(events)
+        super(BacktestExecution, self).__init__(events)
         self.products = products
         self.symbols = [product.symbol for product in self.products]
         self.second_bars = second_bars

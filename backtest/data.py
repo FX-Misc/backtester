@@ -1,21 +1,21 @@
 import logging
 import datetime as dt
 from trading.events import MarketEvent
-from trading.data_handler import BacktestDataHandler
+from trading.data import BacktestDataHandler
 from data_utils.quantgo_utils import get_data_multi
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 
 
-class CMEBacktestDataHandler(BacktestDataHandler):
+class BacktestData(BacktestDataHandler):
     def __init__(self, events, products, start_date, end_date,
                  start_time=dt.time(hour=3),
                  end_time=dt.time(hour=20),
                  second_bars=True):
 
-        super(CMEBacktestDataHandler, self).__init__(events, products, start_date, end_date,
-                                                     start_time=start_time,
-                                                     end_time=end_time)
+        super(BacktestData, self).__init__(events, products, start_date, end_date,
+                                           start_time=start_time,
+                                           end_time=end_time)
         self.second_bars = second_bars
         self.symbols = [product.symbol for product in self.products]
         self.curr_day = dt.datetime(year=start_date.year, month=start_date.month, day=start_date.day)

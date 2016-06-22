@@ -5,7 +5,7 @@ import time
 import threading
 from collections import deque
 from ib.ext.Order import Order
-from trading.execution_handler import ExecutionHandler
+from trading.execution import ExecutionHandler
 from ib_connection import IBConnection
 from ib_utils import get_contract_details, get_execution_details, create_ib_futures_contract_from_symbol
 from ib_events import IBFillEvent

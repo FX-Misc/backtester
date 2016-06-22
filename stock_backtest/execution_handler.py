@@ -1,7 +1,7 @@
 import numpy as np
 import utils.yahoo_finance as yf
 from events import StockBacktestFillEvent
-from trading.execution_handler import ExecutionHandler
+from trading.execution import ExecutionHandler
 
 COMMISSION = 5.0
 PRICE_FIELD = 'Open'  # which O/H/L/C field to fill orders with

@@ -10,9 +10,9 @@ import datetime as dt
 import numpy as np
 import prediction.features as feats
 from trading.futures_contract import FuturesContract
-from backtest.data_handler import CMEBacktestDataHandler
+from backtest.data import BacktestData
 from trading.futures_strategy import FuturesStrategy
-from backtest.execution_handler import CMEBacktestExecutionHandler
+from backtest.execution import BacktestExecution
 from backtest.backtest import CMEBacktest
 
 NOT_UPDATING_FEATURES = False
@@ -219,10 +219,10 @@ def run_forwardtest():
     }
 
     events = Queue()
-    bars = CMEBacktestDataHandler(events, symbols, start_date, end_date,
-                                    second_bars=True,
-                                    start_time=dt.timedelta(hours=3),
-                                    end_time=dt.timedelta(hours=22))
+    bars = BacktestData(events, symbols, start_date, end_date,
+                        second_bars=True,
+                        start_time=dt.timedelta(hours=3),
+                        end_time=dt.timedelta(hours=22))
     strategy = ClassifierStrategy(events, bars, products, 100000,
                                   load_classifier=True,
                                   contract_multiplier=contract_multiplier,
@@ -235,7 +235,7 @@ def run_forwardtest():
                                   start_time=start_time,
                                   closing_time=closing_time,
                                   standardize=standardize)
-    execution = CMEBacktestExecutionHandler(events, symbols, second_bars=True)
+    execution = BacktestExecution(events, symbols, second_bars=True)
     backtest = CMEBacktest(events, bars, strategy, execution, start_date, end_date)
     backtest.run()
 

@@ -1,7 +1,7 @@
 import datetime as dt
 import utils.yahoo_finance as yf
 from trading.events import MarketEvent
-from trading.data_handler import BacktestDataHandler
+from trading.data import BacktestDataHandler
 from bokeh.client import push_session
 from bokeh.plotting import figure, curdoc, vplot
 

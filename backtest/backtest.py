@@ -1,12 +1,12 @@
 from Queue import Empty
-from data_handler import CMEBacktestDataHandler
+from data import BacktestData
 from trading.backtest import Backtest
 
 
 class CMEBacktest(Backtest):
     def __init__(self, events, strategy, data, execution, start_date, end_date, analytics=None,
                  start_time=None, end_time=None):
-        assert isinstance(data, CMEBacktestDataHandler)
+        assert isinstance(data, BacktestData)
         super(CMEBacktest, self).__init__(events, strategy, data, execution, start_date, end_date, analytics)
         self.start_time = start_time
         self.end_time = end_time
