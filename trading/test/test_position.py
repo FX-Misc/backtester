@@ -18,11 +18,25 @@ class TestPosition(unittest.TestCase):
         new_fill = FillEvent(None, 'test', 10, 100, 10*100, 'test')
         self.position.update(new_fill)
         self.assertEqual(self.position.quantity, 29)
-        self.assertAlmostEquals(self.position.avg_cost, 99.83620, places=3)
+        self.assertAlmostEqual(self.position.avg_cost, 99.83620, places=3)
 
     def test_update_partial_decrease(self):
         new_fill = FillEvent(None, 'test', -12, 101, -12*101, 'test')
         self.position.update(new_fill)
         self.assertEqual(self.position.quantity, 7)
-        self.assertAlmostEquals(self.position.avg_cost, 99.75, places=3)
+        self.assertAlmostEqual(self.position.avg_cost, 99.75, places=3)
         self.assertEqual(self.position.pnl_realized, 15)
+
+    def test_flatten_position(self):
+        new_fill = FillEvent(None, 'test', -19, 101, -19*101, 'test')
+        self.position.update(new_fill)
+        self.assertEqual(self.position.quantity, 0)
+        self.assertEqual(self.position.avg_cost, 0)
+        self.assertEqual(self.position.pnl_realized, 23.75)
+
+    def test_update_reverse_position(self):
+        new_fill = FillEvent(None, 'test', -22, 101, -22*101, 'test')
+        self.position.update(new_fill)
+        self.assertEqual(self.position.quantity, -3)
+        self.assertEqual(self.position.avg_cost, 101)
+        self.assertEqual(self.position.pnl_realized, 23.75)

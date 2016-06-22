@@ -28,12 +28,19 @@ class Position(object):
         elif np.sign(fill_event.quantity) != np.sign(self.quantity) and abs(fill_event.quantity) < abs(self.quantity):
             self._update_partial_decrease(fill_event)
 
+        # flatten position
+        elif np.sign(fill_event.quantity) != np.sign(self.quantity) and abs(fill_event.quantity) == abs(self.quantity):
+            self._update_flatten(fill_event)
+
+        # reverse position
+        else:
+            self._update_reverse(fill_event)
+
     def _update_initial_fill(self, fill_event):
         """
         Initial fill (when currently flat)
 
-        :param fill_event:
-        :return:
+        :param fill_event: (FillEvent)
         """
         self.quantity = fill_event.quantity
         self.avg_cost = fill_event.fill_price
@@ -42,8 +49,7 @@ class Position(object):
         """
         Receiving new fills that increase your position.
 
-        :param fill_event:
-        :return:
+        :param fill_event: (FillEvent)
         """
 
         self.avg_cost =  ((self.quantity*self.avg_cost)+(fill_event.fill_cost))/(self.quantity+fill_event.quantity)
@@ -53,24 +59,32 @@ class Position(object):
         """
         Receiving new fills that partially decrease your position.
 
-        :param fill_event:
-        :return:
+        :param fill_event: (FillEvent)
         """
-        self.pnl_realized += ((fill_event.fill_price-self.avg_cost)*abs(fill_event.quantity))
+        self.pnl_realized += (fill_event.fill_price-self.avg_cost)*abs(fill_event.quantity)
         self.quantity += fill_event.quantity
 
     def _update_flatten(self, fill_event):
         """
         Receiving fills that flatten your position.
 
-        :param fill_event:
-        :return:
+        :param fill_event: (FillEvent)
         """
-        pass
+        self.pnl_realized += (fill_event.fill_price-self.avg_cost)*abs(fill_event.quantity)
+        self.quantity += fill_event.quantity
+        assert self.quantity == 0
+        self.avg_cost = 0
 
     def _update_reverse(self, fill_event):
-        pass
+        """
+        Receiving fills that reverse your position.
 
+        :param fill_event: (FillEvent)
+        """
+
+        self.pnl_realized += (fill_event.fill_price-self.avg_cost)*abs(self.quantity)
+        self.quantity = abs(abs(fill_event.quantity)-abs(self.quantity))*np.sign(fill_event.quantity)
+        self.avg_cost = fill_event.fill_price
 
     def __str__(self):
         return "Quantity: {}, AvgCost: {}".format(self.quantity, self.avg_cost)
