@@ -4,6 +4,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 # print os.getcwd()
 import tabulate
+import json
 import pandas as pd
 import numpy as np
 import datetime as dt
@@ -14,7 +15,12 @@ from Queue import Queue
 from trading.strategy import Strategy
 import analytics.plotting as plot
 from analytics.plotting import plot_holdings
-from plotting.plot import plot_backtest
+
+from backtest.data import BacktestDataHandler
+from backtest.execution import ExecutionHandler
+from backtest.backtest import CMEBacktest
+
+from plotting.plot import plot_backtest, FIGS_DIR
 
 NOT_UPDATING_FEATURES = False
 
@@ -22,6 +28,8 @@ BACKTEST_NAME = None
 
 RUN_TIME = dt.datetime.now()
 
+
+# TODO - plot the entry and exit thresholds plus the true_price vs mid_price
 
 class MeanrevertStrategy(Strategy):
 
@@ -79,10 +87,15 @@ class MeanrevertStrategy(Strategy):
 
         self.HL = int(7680/2 / self.granularity)
         self.alpha = 1-np.exp(np.log(0.5)/self.HL)
+        self.std_window = 4*self.HL
 
         self.true_price = []
 
+        self.stds = []
+
         self.lockdown = [0]
+
+        self.std_queue = []
 
 
     def new_tick(self, market_event):
@@ -95,7 +108,6 @@ class MeanrevertStrategy(Strategy):
 
         for sym in self.symbols:
             try:
-
                 if len(self.price_series[sym]) > 0:
                     py = self.true_price[sym][-1]
                     pt = self.thetas[-1]
@@ -119,70 +131,58 @@ class MeanrevertStrategy(Strategy):
                 else:
                     self.true_price.append(bar['mid_price'])
 
-                good_as = ~data['lockdown']
-                data.ix[good_as, 'std_k'] = map(lambda v: max(v, 0.15), pd.rolling_std(np.concatenate([[0], np.diff(data.ix[good_as, 'mid_price'])]), window=window))
+                # omit jump lockdowns from the std measurement
+                if a != 1:
+                    self.std_queue.append(bar['mid_price'])
+                    if len(self.std_window) > self.std_window:
+                        self.std_window = self.std_window[:-1]
 
-                data['+1_std_k'] = data['ema_k'] + data['std_k']
-                data['-1_std_k'] = data['ema_k'] - data['std_k']
-
-                data['s0'] = 0
-                data['s1'] = data['mid_price'] - data['+1_std_k']
-                data['s2'] = data['-1_std_k'] - data['mid_price']
-                data['signal'] = data[['s0', 's1', 's2']].max(axis=1)
-
-                data['signal'] = data['signal'] * np.sign(data['mid_price'] - data['+1_std_k'])
+                self.stds.append(np.std(self.std_queue))
 
                 pos = self.implied_pos[sym]
 
-                #prob = bar['mean_reversion_signal_3840_3840']
-                prob = bar['mean_reversion_signal_3840_7680']
-                ema_diff = bar['ema_diff_3840']
-                hurst = bar['hurst_exp_15360_600']
-
-                signal = int(-prob / 0.1)
-
-                if abs(signal) > 3:
-                    signal = 3 * np.sign(signal)
-
                 # close out
                 if self.cur_time.time() >= self.closing_time and pos != 0:
-                    print pos
                     self.order(sym, -pos)
                     self.implied_pos[sym] += -pos
                     self.last_order_time[sym] = self.cur_time
 
-                elif self.cur_time.time() >= self.start_time and self.cur_time.time() < self.closing_time:
+                # do not trade before start time or after close
+                if self.cur_time < self.start_time or self.cur_time.time() > self.closing_time:
+                    continue
 
-                    if self.cur_time.time() >= self.closing_time and pos == 0:
-                        pass
+                uthresh = self.true_price[-1] + max(0.15, self.stds[-1])
+                dthresh = self.true_price[-1] - max(0.15, self.stds[-1])
 
-                    # kills from hurst exponent
-                    elif self.kill_till[sym] is not None and self.kill_till[sym] >= self.cur_time:
-                        pass
+                uexthresh = self.true_price[-1] + max(0.075, self.stds[-1]/2.)
+                dexthresh = self.true_price[-1] - max(0.075, self.stds[-1]/2.)
 
-                    # check hurst exponent
-                    elif hurst <= -10:
-                        self.order(sym, -pos)
-                        self.implied_pos[sym] += -pos
-                        #self.kill_till[sym] = self.cur_time + dt.timedelta(30)
+                signal = bar['mid_price'] - self.true_price
 
-                    # increase position
-                    elif self.order_qty*abs(signal) > abs(pos):
-                        self.order(sym, signal*self.order_qty - pos)
-                        self.implied_pos[sym] += signal*self.order_qty - pos
-                        if np.sign(pos) != np.sign(signal):
-                            self.last_order_time[sym] = self.cur_time
+                if self.jump_lockdown > 0 or self.theta_lockdown > 0:
+                    self.order(sym, -pos)
+                elif signal > uthresh:
+                    qty = (1 + abs(signal-uthresh)/0.1/self.stds[-1])
+                    if abs(qty) > abs(pos) and np.sign(qty) == np.sign(pos):
+                        self.order(sym, qty-pos)
+                        self.implied_pos[sym] += qty-pos
+                elif signal < dthresh:
+                    qty = -1 * (1 + abs(dthresh-signal)/0.1/self.stds[-1])
+                    if abs(qty) > abs(pos) and np.sign(qty) == np.sign(pos):
+                        self.order(sym, qty-pos)
+                        self.implied_pos[sym] += qty-pos
+                elif pos > 0 and signal < uexthresh:
+                    self.order(sym, -pos)
+                    self.implied_pos[sym] += -pos
+                elif pos < 0 and signal > dexthresh:
+                    self.order(sym, -pos)
+                    self.implied_pos[sym] += -pos
 
-                    elif pos != 0 and np.sign(ema_diff) != -np.sign(pos):
-                        self.order(sym, -pos)
-                        self.implied_pos[sym] += -pos
-                        self.last_order_time[sym] = None
+                #elif pos != 0:
+                #    self.check_stop_loss(sym)
 
-                    elif pos != 0:
-                        self.check_stop_loss(sym)
-
-                self.signals[sym].append(hurst)
-                self.probs[sym].append(prob)
+                self.signals[sym].append(signal)
+                self.probs[sym].append(self.thetas[-1])
                 self.positions[sym].append(pos)
 
             except Exception as e:
@@ -272,7 +272,6 @@ class MeanrevertStrategy(Strategy):
                 'max_hold': str(self.max_hold_time),
                 'slippage': self.slippage,
                 'standardize': self.standardize,
-                #'x_feats': x_feats,
                 'starting_cash': self.starting_cash,
                 'sharpe': sharpe,
                 'pnl': self.total_pnl[-1],
@@ -336,70 +335,6 @@ class MeanrevertStrategy(Strategy):
         return fpath
 
 
-class SuperClassifier(object):
-    def __init__(self, clfs, windows):
-        self.clfs = clfs
-        self.windows = windows
-
-    def partial_fit(self, X, y):
-        for clf in self.clfs:
-            clf.partial_fit(X, y)
-
-    def fit(self, X, y):
-        for clf in self.clfs:
-            clf.fit(X, y)
-        if len(self.clfs) == 1:
-            self.coef_ = self.clfs.coef_
-        else:
-            self.coefs = [clf.coef_ for clf in self.clfs]
-
-    def predict(self, x, probabilities=False, prob_thresh=(0.4, 0.6)):
-
-        if len(self.windows) == 1:
-            preds = self.clfs[0].predict_proba(x).T[1]
-            if not probabilities:
-                preds[preds >= prob_thresh[1]] = 1
-                preds[preds <= prob_thresh[0]] = -1
-                preds[abs(preds) != 1] = 0
-            return preds
-
-        probs = pd.DataFrame()
-
-        for i, clf in enumerate(self.clfs):
-            probs[windows[i]] = clf.predict_proba(x).T[1]
-
-        probs = probs.reset_index()
-        best_windows = pd.Series(np.abs(probs[self.windows] - 0.5).idxmax(axis=1))
-        best_probs = probs.lookup(best_windows.index, best_windows.values)
-
-        if not probabilities:
-            return best_probs, best_windows
-        else:
-            preds = best_probs.copy()
-            preds[preds >= prob_thresh[1]] = 1
-            preds[preds <= prob_thresh[0]] = -1
-            preds[abs(preds) != 1] = 0
-            return preds, best_windows
-
-
-def get_classifier(data, feature_columns, pred_windows, classifier=linear_model.LogisticRegression):
-    log.info("Getting classifiers")
-    clfs = []
-    if type(pred_windows) is not list:
-        pred_windows = [pred_windows]
-    X = data[feature_columns].values
-    for pred_window in pred_windows:
-        pred_col = 'score_{}w+'.format(pred_window)
-        label_col = 'label_{}'.format(pred_window)
-        featutils.label_data(data, pred_col, 0, label_name=label_col)
-        y = data[label_col]
-        clf = classifier(C=1.0, class_weight='auto')
-        log.info("Fitting classifier with: " + pred_col)
-        clf.fit(X, y)
-        log.info("Fit classifier with: " + pred_col)
-        clfs.append(clf)
-    return SuperClassifier(clfs, pred_windows)
-
 
 def run_backtest():
     # parameters
@@ -427,16 +362,7 @@ def run_backtest():
     transaction_costs = {
         symbols[0]: 1.45
     }
-    training_elements = [
-        (sys.argv[4], dt.datetime.strptime(sys.argv[5], "%Y-%m-%d"), dt.datetime.strptime(sys.argv[6], "%Y-%m-%d"))
-        #('GCX5', dt.datetime(year=2015, month=10, day=1), dt.datetime(year=2015, month=10, day=31)),
-        #('GCZ5', dt.datetime(year=2015, month=11, day=1), dt.datetime(year=2015, month=11, day=30)),
-        #('GCG6', dt.datetime(year=2015, month=12, day=1), dt.datetime(year=2015, month=12, day=31)),
-        #('GCG6', dt.datetime(year=2016, month=1, day=1), dt.datetime(year=2016, month=1, day=31)),
-        #('HGX5', dt.datetime(year=2015, month=10, day=1), dt.datetime(year=2015, month=10, day=31)),
-        #('HGZ5', dt.datetime(year=2015, month=11, day=1), dt.datetime(year=2015, month=11, day=31)),
-        #('HGZ5', dt.datetime(year=2015, month=11, day=1), dt.datetime(year=2015, month=11, day=30)),
-    ]
+
 
     events = Queue()
 
@@ -444,17 +370,10 @@ def run_backtest():
                                     second_bars=True,
                                     standardize=standardize,
                                     bar_length=1,
-                                    x_feats=x_feats,
-                                    y_feats=y_feats,
                                     start_time=dt.timedelta(hours=3),
                                     end_time=dt.timedelta(hours=22))
 
     strategy = MeanrevertStrategy(bars, events,
-                                  training_elements=training_elements,
-                                  prob_thresh=prob_thresh,
-                                  pred_windows=pred_windows,
-                                  retrain_frequency=retrain_frequency,
-                                  load_classifier=True,
                                   contract_multiplier=contract_multiplier,
                                   transaction_costs=transaction_costs,
                                   slippage=0.00,
@@ -464,13 +383,11 @@ def run_backtest():
                                   start_date=start_date,
                                   end_date=end_date,
                                   start_time=start_time,
-                                  closing_time=closing_time,
-                                  standardize=standardize,
-                                  take_profit_threshold=take_profit_threshold)
+                                  closing_time=closing_time)
 
-    execution = CMEBacktestExecutionHandler(symbols, events, second_bars=True)
+    execution = ExecutionHandler(symbols, events, second_bars=True)
 
-    backtest = Backtest(events, bars, strategy, execution, start_date, end_date)
+    backtest = CMEBacktest(events, bars, strategy, execution, start_date, end_date)
 
     backtest.run()
 
