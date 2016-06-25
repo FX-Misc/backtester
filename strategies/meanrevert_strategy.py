@@ -25,7 +25,7 @@ RUN_TIME = dt.datetime.now()
 
 class MeanrevertStrategy(Strategy):
 
-    def initialize(self,  contract_multiplier={}, transaction_costs={}, slippage=0, starting_cash=100000,
+    def initialize(self,  contract_multiplier={}, transaction_costs={}, slippage=0, starting_cash=100000, granularity=1,
                    min_hold_time=dt.timedelta(minutes=15), max_hold_time=dt.timedelta(hours=2), start_date=None, end_date=None,
                    start_time=dt.time(hour=0), closing_time=dt.time(hour=23, minute=59), order_qty=1):
 
@@ -69,13 +69,21 @@ class MeanrevertStrategy(Strategy):
         self.true_probs = {sym: [] for sym in self.symbols}
         self.positions = {sym: [] for sym in self.symbols}
         self.cur_time = None
-        self.accs = []
+        self.granularity = granularity
 
         self.alphas = []
         self.thetas = [0]
 
         self.theta_lockdown = 0
         self.jump_lockdown = 0
+
+        self.HL = int(7680/2 / self.granularity)
+        self.alpha = 1-np.exp(np.log(0.5)/self.HL)
+
+        self.true_price = []
+
+        self.lockdown = [0]
+
 
     def new_tick(self, market_event):
 
@@ -89,38 +97,40 @@ class MeanrevertStrategy(Strategy):
             try:
 
                 if len(self.price_series[sym]) > 0:
-                    py = self.price_series[sym][-1]
+                    py = self.true_price[sym][-1]
                     pt = self.thetas[-1]
+                    a = self.alpha
+                    x = bar['mid_price']
+                    self.lockdown.append(0)
+                    if self.theta_lockdown > 1:
+                        self.theta_lockdown -= 1
+                        self.lockdown[-1] = 1
+                        a = self.alpha + max(0, abs(pt - 0.1))
                     if self.jump_lockdown > 1:
                         self.jump_lockdown -= 1
+                        self.lockdown[-1] = 1
+                        a = 1
+                    self.true_price.append(a * x + (1-a) * py)
+                    self.thetas.append(a * (self.true_price[-1]-x) + (1-a) * pt)
+                    if abs(self.true_price[-1]-x) > 1.5 and self.jump_lockdown == 0:
+                        self.jump_lockdown = int(60 * 60 / self.granularity)
+                    if abs(self.thetas[-1]) > 0.15 and self.jump_lockdown == 0:
+                        self.trade_lockdown = int(60 * 60 / self.granularity)
                 else:
+                    self.true_price.append(bar['mid_price'])
 
+                good_as = ~data['lockdown']
+                data.ix[good_as, 'std_k'] = map(lambda v: max(v, 0.15), pd.rolling_std(np.concatenate([[0], np.diff(data.ix[good_as, 'mid_price'])]), window=window))
 
-                pp = data.ix[i-1, 'poop']
-                pp2 = data.ix[i-1, 'poop2']
-                x = data.ix[i, 'mid_price']
-                if lockdown > 1:
-                    lockdown -= 1
-                    a = 1
-                    data.ix[i, 'poop'] = 0
-                    data.ix[i, 'poop2'] = 0
-                else:
-                    a = ac
-                    ap = a
-                    data.ix[i, 'poop'] = ap * (py-x) + (1-ap)*pp
-                    data.ix[i, 'poop2'] = ap*2 * (py-x) + (1-ap*2)*pp2
-                if trade_lockdown > 1:
-                    trade_lockdown -= 1
-                    data.ix[i, 'lockdown'] = True
-                a = a + max(0, abs(data.ix[i, 'poop2']) - 0.1)
-                data.ix[i, 'alphas'] = a
-                data.ix[i, 'ema_k'] = a * x + (1-a)*py
-                data.ix[i, 'ema_{}'.format(HL)] = ac * x + (1-ac) * data.ix[i-1, 'ema_{}'.format(HL)]
-                if abs(py-x) > 1.5 and lockdown == 0:
-                    lockdown = 60
-                    trade_lockdown = 60
-                if abs(data.ix[i, 'poop2']) > 0.15 and trade_lockdown == 0:
-                    trade_lockdown = 60
+                data['+1_std_k'] = data['ema_k'] + data['std_k']
+                data['-1_std_k'] = data['ema_k'] - data['std_k']
+
+                data['s0'] = 0
+                data['s1'] = data['mid_price'] - data['+1_std_k']
+                data['s2'] = data['-1_std_k'] - data['mid_price']
+                data['signal'] = data[['s0', 's1', 's2']].max(axis=1)
+
+                data['signal'] = data['signal'] * np.sign(data['mid_price'] - data['+1_std_k'])
 
                 pos = self.implied_pos[sym]
 
