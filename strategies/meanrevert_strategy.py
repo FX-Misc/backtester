@@ -369,7 +369,7 @@ def run_backtest():
     bars = BacktestDataHandler(events, symbols, start_date, end_date,
                                     second_bars=True,
                                     standardize=standardize,
-                                    bar_length=1,
+                                    bar_length=60,
                                     start_time=dt.timedelta(hours=3),
                                     end_time=dt.timedelta(hours=22))
 
@@ -377,6 +377,7 @@ def run_backtest():
                                   contract_multiplier=contract_multiplier,
                                   transaction_costs=transaction_costs,
                                   slippage=0.00,
+                                  granularity=60,
                                   order_qty=order_qty,
                                   min_hold_time=dt.timedelta(minutes=5),
                                   max_hold_time=dt.timedelta(hours=12),
