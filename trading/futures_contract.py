@@ -1,6 +1,6 @@
 import datetime as dt
-from futures_utils import build_contract, get_contract_specs, get_mkt_times
 from ib.utils import create_ib_futures_contract
+from futures_utils import build_contract, get_contract_specs, get_mkt_times, get_highest_volume_contract
 
 class FuturesContract(object):
     def __init__(self, base_symbol, exp_year=None, exp_month=None, continuous=False):
@@ -33,4 +33,10 @@ class FuturesContract(object):
                                                       currency=self.currency)
 
 
+        self.continuous = continuous
+
+    def update(self, exp_year, exp_month):
+        self.exp_year = exp_year
+        self.exp_month = exp_month
+        self.symbol = get_highest_volume_contract(self.base_symbol, self.exp_year, self.exp_month)
 

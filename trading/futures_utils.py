@@ -92,25 +92,25 @@ def get_futures_data(symbol, exp_year, exp_month):
     return Qd.get(dataset=quandl_future_code, authtoken=QUANDL_KEY)
 
 
-def get_highest_volume_contract(symbol, year, month, day):
+def get_highest_volume_contract(base_symbol, year, month, day):
     """
     Get the highest-volume contract for the symbol for a given date.
-    :param symbol: (int)
+    :param base_symbol: e.g. 'GC'
     :param year: (int)
     :param month: (int)
     :param day: (int)
     :return: (str) e.g. 'GCM6'
     """
-    highest_volume_contract = build_contract(symbol, year, month)
+    highest_volume_contract = build_contract(base_symbol, year, month)
     max_volume = 0
     start_date = dt.datetime(year, month, day)
     for i in range(8):
         date = start_date + relativedelta(months=i)
         try:
-            data = get_futures_data(symbol, date.year, date.month)
+            data = get_futures_data(base_symbol, date.year, date.month)
             volume = data.ix[start_date]['Volume']
             if volume >= max_volume:
-                highest_volume_contract = build_contract(symbol, date.year, date.month)
+                highest_volume_contract = build_contract(base_symbol, date.year, date.month)
                 max_volume = volume
         except Qd.DatasetNotFound:
             pass

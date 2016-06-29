@@ -8,7 +8,6 @@ class BuyStrategy(Strategy):
         self.curr_dt = None
         self.prod1 = products[0]
         self.sym1 = products[0].symbol
-        self.fills = []
         self.buy_int = 0
 
     def new_tick(self):
@@ -19,7 +18,6 @@ class BuyStrategy(Strategy):
                 order_qty = 1
             else:
                 order_qty = -1
-
             self.order(self.prod1, order_qty, order_type='MARKET', price=None, order_time=self.curr_dt)
 
     def new_fill(self, fill_event):

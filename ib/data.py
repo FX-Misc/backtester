@@ -23,7 +23,6 @@ class IBData(DataHandler, IBConnection):
         self.curr_dt = dt.datetime.now()
         self.last_bar = {product.symbol: {} for product in self.products}
 
-        print 'datahandler', self.last_bar
 
         # Subscribe to mkt data feeds
         self.ticker_ids = {}  # ticker_id:symbol

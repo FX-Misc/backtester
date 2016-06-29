@@ -18,8 +18,6 @@ LIMIT_FILL_PROBABILITY = 0.1
 class BacktestExecution(ExecutionHandler):
     def __init__(self, events, products, second_bars=True, commission=None):
         super(BacktestExecution, self).__init__(events)
-        self.products = products
-        self.symbols = [product.symbol for product in self.products]
         self.second_bars = second_bars
         self.commission = commission if commission is not None else CME_HISTORICAL_TRANSACTION_COST
         self.resting_orders = []

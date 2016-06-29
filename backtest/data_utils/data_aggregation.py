@@ -1,8 +1,6 @@
-import datetime as dt
 import os
-
+import datetime as dt
 import pandas as pd
-
 from backtest.data_utils.data_path import get_file_path, get_date_and_sym
 
 

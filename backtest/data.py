@@ -17,12 +17,10 @@ class BacktestData(BacktestDataHandler):
                                            start_time=start_time,
                                            end_time=end_time)
         self.second_bars = second_bars
-        self.symbols = [product.symbol for product in self.products]
         self.curr_day = dt.datetime(year=start_date.year, month=start_date.month, day=start_date.day)
         self.curr_day_data = None
         self.curr_day_index = 0
         self.curr_dt = None
-        self.symbol = self.symbols[0]
         self.last_bar = {}
         self._load_day_data()
 
@@ -31,7 +29,13 @@ class BacktestData(BacktestDataHandler):
         """
         Updates the current_day_data.
         """
-        self.curr_day_data = get_data_multi(self.symbols, self.curr_day,
+
+        # for continous contracts, update the symbol on new day
+        for product in self.products:
+            product.update(exp_year=self.curr_day.year, exp_month=self.curr_day.month)
+        symbols = [product.symbol for product in self.products]
+
+        self.curr_day_data = get_data_multi(symbols, self.curr_day,
                                             download=False,
                                             second_bars=True,
                                             start_time=self.start_time,
