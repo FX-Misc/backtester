@@ -30,7 +30,7 @@ class BacktestData(BacktestDataHandler):
         Updates the current_day_data.
         """
 
-        # for continous contracts, update the symbol on new day
+        # for continuous contracts, update the symbol on new day
         for product in self.products:
             product.update(exp_year=self.curr_day.year, exp_month=self.curr_day.month)
         symbols = [product.symbol for product in self.products]
