@@ -497,7 +497,7 @@ def run_backtest():
 
     events = Queue()
     products = [FuturesContract(symbol, continuous=True)]
-    data = BacktestDataHandler(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
+    data = BacktestData(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
     products = [FuturesContract('GC', continuous=True)]
     data = BacktestData(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
     execution = BacktestExecution(events, products)
