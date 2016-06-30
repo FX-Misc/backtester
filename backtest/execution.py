@@ -6,7 +6,7 @@ from data_utils.quantgo_utils import get_data_multi
 from events import CMEBacktestFillEvent
 from trading.execution import ExecutionHandler
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
-log = logging.getLogger('Execution Handler')
+log = logging.getLogger('Backtest')
 
 
 CME_HISTORICAL_ORDER_DELAY = dt.timedelta(seconds=.01)
@@ -18,6 +18,7 @@ LIMIT_FILL_PROBABILITY = 0.1
 class BacktestExecution(ExecutionHandler):
     def __init__(self, events, products, second_bars=True, commission=None):
         super(BacktestExecution, self).__init__(events)
+        self.products = products
         self.second_bars = second_bars
         self.commission = commission if commission is not None else CME_HISTORICAL_TRANSACTION_COST
         self.resting_orders = []
@@ -117,7 +118,6 @@ class BacktestExecution(ExecutionHandler):
 
     def clear_resting_orders(self):
         if len(self.resting_orders) > 0:
-            # log.info("All resting orders removed")
             self.resting_orders = []
 
     def _get_fill_time(self, order_time, symbol):
@@ -133,7 +133,6 @@ class BacktestExecution(ExecutionHandler):
         fill_event = CMEBacktestFillEvent(order_event.order_time, fill_time, order_event.symbol,
                                           order_event.quantity, fill_price, fill_cost,
                                           commission=self.commission)
-        # log.info(fill_event)
         self.events.put(fill_event)
 
     def _check_day_data(self, datetime):
@@ -143,7 +142,8 @@ class BacktestExecution(ExecutionHandler):
         """
         if self.curr_day_data is None or self.compare_dates(self.curr_day_data.index[0], datetime) is False:
             date = dt.datetime(year=datetime.year, month=datetime.month, day=datetime.day)
-            self.curr_day_data = get_data_multi(self.symbols, date, second_bars=self.second_bars)
+            symbols = [product.symbol for product in self.products]
+            self.curr_day_data = get_data_multi(symbols, date, second_bars=self.second_bars)
             self.clear_resting_orders()
 
     @staticmethod

@@ -101,3 +101,6 @@ class FillEvent(Event):
         return "FILL | Time: {}, Symbol: {}, Qty: {}, Price: {}, Cost: {}, Commission: {} "\
             .format(self.fill_time, self.symbol, self.quantity, self.fill_price, self.fill_cost, self.commission)
 
+class NewDayEvent(Event):
+    def __init__(self):
+        self.type = 'NEW_DAY'

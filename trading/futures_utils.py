@@ -89,7 +89,7 @@ def get_futures_data(symbol, exp_year, exp_month):
     | 2016-03-10 00:00:00 | 1250.6 | 1274.5 | 1240.1 | 1274   |     15.4 |   1273.3 |      249 |             309 |
     """
     quandl_future_code = get_quandl_future_code(symbol, exp_year, exp_month)
-    return Qd.get(dataset=quandl_future_code, authtoken=QUANDL_KEY)
+    return Qd.get(dataset=str(quandl_future_code), authtoken=QUANDL_KEY)
 
 
 def get_highest_volume_contract(base_symbol, year, month, day):

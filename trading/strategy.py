@@ -111,6 +111,7 @@ class Strategy(object):
         """
         self.curr_dt = market_event.dt
         self.last_bar = market_event.data
+        self.new_tick()
 
     def new_fill_update(self, fill_event):
         """
@@ -127,6 +128,12 @@ class Strategy(object):
         self.cash -= fill_event.fill_cost
         self.transactions_series.append(fill_event)
         self.pnl_realized = sum(position.pnl_realized for position in self.positions.values())
+
+        self.new_fill(fill_event)
+
+    def new_day_update(self):
+        self.symbols = self.data.symbols
+        self.new_day()
 
     def get_latest_bars(self, symbol, window, start=None):
         """

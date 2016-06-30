@@ -17,6 +17,7 @@ class BacktestData(DataHandler):
 
         self.continue_backtest = True
         self.products = products
+        self.symbols = [product.symbol for product in self.products]
         self.start_date = start_date
         self.end_date = end_date
         self.start_time = start_time
@@ -42,10 +43,10 @@ class BacktestData(DataHandler):
         for product in self.products:
             product.update(year=self.curr_day.year, month=self.curr_day.month, day=self.curr_day.day)
 
-        symbols = [product.symbol for product in self.products]
+        self.symbols = [product.symbol for product in self.products]
 
 
-        self.curr_day_data = get_data_multi(symbols, self.curr_day,
+        self.curr_day_data = get_data_multi(self.symbols, self.curr_day,
                                             download=False,
                                             second_bars=True,
                                             start_time=self.start_time,
@@ -53,7 +54,7 @@ class BacktestData(DataHandler):
         self.curr_day_data_it = self.curr_day_data.iterrows()
 
     def update(self):
-        if self.curr_day >= self.end_date:
+        if self.curr_day > self.end_date:
             self.continue_backtest = False
             return
 
