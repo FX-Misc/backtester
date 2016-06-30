@@ -486,7 +486,7 @@ def run_backtest():
                                   initial_cash=100000,
                                   # contract_multiplier=contract_multiplier,
                                   # transaction_costs=transaction_costs,
-                                  slippage=0.00,
+                                  slippage=0.01,
                                   granularity=60,
                                   order_qty=order_qty,
                                   min_hold_time=dt.timedelta(minutes=5),
