@@ -1,3 +1,4 @@
+import os
 import json
 import pandas as pd
 import numpy as np
@@ -17,15 +18,16 @@ RUN_TIME = dt.datetime.now()
 
 # TODO - plot the entry and exit thresholds plus the true_price vs mid_price
 
+
 class MeanrevertStrategy(Strategy):
 
-    def initialize(self,  contract_multiplier={}, transaction_costs={}, slippage=0, starting_cash=100000, granularity=1,
+    def initialize(self,  contract_multiplier=None, transaction_costs=None, slippage=0, starting_cash=100000, granularity=1,
                    min_hold_time=dt.timedelta(minutes=15), max_hold_time=dt.timedelta(hours=2), start_date=None, end_date=None,
                    start_time=dt.time(hour=0), closing_time=dt.time(hour=23, minute=59), order_qty=1):
 
-        self.symbols = self.bars.symbols
-        self.contract_multiplier = contract_multiplier
-        self.transaction_costs = transaction_costs
+        self.symbols = self.data.symbols
+        self.contract_multiplier = contract_multiplier if contract_multiplier is not None else {}
+        self.transaction_costs = transaction_costs if transaction_costs is not None else {}
         self.slippage = slippage
         self.starting_cash = starting_cash
         self.min_hold_time = min_hold_time
@@ -64,7 +66,7 @@ class MeanrevertStrategy(Strategy):
         self.probs = {sym: [] for sym in self.symbols}
         self.true_probs = {sym: [] for sym in self.symbols}
         self.positions = {sym: [] for sym in self.symbols}
-        self.cur_time = None
+        self.curr_dt = None
         self.granularity = granularity
 
         self.alphas = []
@@ -109,10 +111,9 @@ class MeanrevertStrategy(Strategy):
 
     def new_tick(self):
 
-        self.cur_time = self.data.curr_dt
+        self.curr_dt = self.data.curr_dt
         bar = self.data.last_bar[self.products[0].symbol]
         mid_price = (bar['level_1_price_buy'] + bar['level_1_price_sell']) / 2.
-
         self.update_metrics()
 
         slope = 0
@@ -175,10 +176,10 @@ class MeanrevertStrategy(Strategy):
                 pos = self.implied_pos[sym]
 
                 # close out
-                if self.cur_time.time() >= self.closing_time and pos != 0:
+                if self.curr_dt.time() >= self.closing_time and pos != 0:
                     self.order(sym, -pos)
                     self.implied_pos[sym] += -pos
-                    self.last_order_time[sym] = self.cur_time
+                    self.last_order_time[sym] = self.curr_dt
                     self.signals[sym].append(0)
                     self.signals2[sym].append(0)
                     self.probs[sym].append(0)
@@ -190,7 +191,7 @@ class MeanrevertStrategy(Strategy):
                     continue
 
                 # do not trade before start time or after close
-                if self.cur_time.time() < self.start_time or self.cur_time.time() > self.closing_time:
+                if self.curr_dt.time() < self.start_time or self.curr_dt.time() > self.closing_time:
                     self.signals[sym].append(0)
                     self.signals2[sym].append(0)
                     self.probs[sym].append(0)
@@ -281,8 +282,8 @@ class MeanrevertStrategy(Strategy):
             print len(self.true_price[self.symbols[0]]), len(self.time_series)
             raise Exception("FUCK YOU")
 
-    def new_day(self, newday_event):
-        print "new day", newday_event.next_date
+    def new_day(self):
+        print "new day", self.curr_dt
 
         if len(self.time_series) == 0:
             return
@@ -311,9 +312,9 @@ class MeanrevertStrategy(Strategy):
                             RUN_TIME.strftime("%Y_%m_%d_%h_%M_%s")
                             if BACKTEST_NAME is None else BACKTEST_NAME)
 
-        plot_backtest(os.path.join(backtest_dir,
-                                   'backtest_results_{}'.format(
-                                       (dt.datetime.utcfromtimestamp(newday_event.prev_date.tolist()/1e9)).strftime("%Y_%m_%d"))),
+        path = os.path.join(backtest_dir,'backtest_results_{}'.
+                            format((dt.datetime.utcfromtimestamp(self.data.prev_day.tolist()/1e9)).strftime("%Y_%m_%d")))
+        plot_backtest(path,
                       self.time_series,
                       self.price_series[self.symbols[0]],
                       self.true_price[self.symbols[0]],
@@ -347,16 +348,17 @@ class MeanrevertStrategy(Strategy):
             self.dexthreshs[sym] = []
 
     def new_fill(self, fill_event):
-        sym = fill_event.symbol
-        self.pos[sym] += fill_event.quantity
-        if self.pos[sym] == 0:
-            self.entry_price[sym] = None
-        else:
-            self.entry_price[sym] = fill_event.fill_cost / float(fill_event.quantity)
-        self.cash -= self.contract_multiplier[sym] * fill_event.fill_cost + \
-                     self.transaction_costs[sym] * abs(fill_event.quantity) + \
-                     self.contract_multiplier[sym] * abs(fill_event.quantity) * self.slippage
-        self.orders[sym].append((self.cur_time, fill_event.quantity, self.pos[sym], abs(fill_event.fill_cost / float(fill_event.quantity))))
+        pass
+        # sym = fill_event.symbol
+        # self.pos[sym] += fill_event.quantity
+        # if self.pos[sym] == 0:
+        #     self.entry_price[sym] = None
+        # else:
+        #     self.entry_price[sym] = fill_event.fill_cost / float(fill_event.quantity)
+        # self.cash -= self.contract_multiplier[sym] * fill_event.fill_cost + \
+        #              self.transaction_costs[sym] * abs(fill_event.quantity) + \
+        #              self.contract_multiplier[sym] * abs(fill_event.quantity) * self.slippage
+        # self.orders[sym].append((self.curr_dt, fill_event.quantity, self.pos[sym], abs(fill_event.fill_cost / float(fill_event.quantity))))
 
     def finished(self):
 
@@ -415,7 +417,7 @@ class MeanrevertStrategy(Strategy):
         last_bar_mid_price = (last_bar['level_1_price_sell'] + last_bar['level_1_price_buy']) / 2.
         pnl_ = self.cash + sum([self.pos[sym] * self.contract_multiplier[sym] * last_bar_mid_price for sym in self.symbols])
         self.pnl.append(pnl_)
-        self.time_series.append(self.cur_time)
+        self.time_series.append(self.curr_dt)
         for sym in self.symbols:
             self.price_series[sym].append(last_bar_mid_price)
             self.spread[sym].append(last_bar['level_1_price_sell'] - last_bar['level_1_price_buy'])
@@ -461,45 +463,28 @@ class MeanrevertStrategy(Strategy):
 
 
 def run_backtest():
-    # parameters
-    #global BACKTEST_NAME
-    #if len(sys.argv) > 1:
-    #    BACKTEST_NAME = sys.argv[1]
-    pred_windows = [7680]
-    #prob_thresh = (0.2, 0.8)
-    prob_thresh = (0.4, 0.6)
     order_qty = 1
-    retrain_frequency = dt.timedelta(days=77)
     start_time = dt.time(hour=5)
     closing_time = dt.time(hour=18)
     standardize = False
-    take_profit_threshold = None
     start_date = dt.datetime(year=2015, month=11, day=1)
     end_date = dt.datetime(year=2015, month=11, day=30)
-    #symbols = ['GCZ5']
-    # start_date = dt.datetime.strptime(sys.argv[2], "%Y-%m-%d")
-    # end_date = dt.datetime.strptime(sys.argv[3], "%Y-%m-%d")
-    # symbols = [sys.argv[1]]
-    contract_multiplier = {
-        symbols[0]: 1000
-    }
-    transaction_costs = {
-        symbols[0]: 1.45
-    }
 
+    # contract_multiplier = {
+    #     symbols[0]: 1000
+    # }
+    # transaction_costs = {
+    #     symbols[0]: 1.45
+    # }
 
     events = Queue()
-
-    bars = CMEDataHandlerHistorical(events, symbols, start_date, end_date,
-                                    second_bars=True,
-                                    standardize=standardize,
-                                    bar_length=60,
-                                    start_time=dt.timedelta(hours=3),
-                                    end_time=dt.timedelta(hours=22))
-
-    strategy = MeanrevertStrategy(bars, events,
-                                  contract_multiplier=contract_multiplier,
-                                  transaction_costs=transaction_costs,
+    products = [FuturesContract('GC', continuous=True)]
+    data = BacktestDataHandler(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
+    execution = BacktestExecution(events, products)
+    strategy = MeanrevertStrategy(data, events, products,
+                                  initial_cash=100000,
+                                  # contract_multiplier=contract_multiplier,
+                                  # transaction_costs=transaction_costs,
                                   slippage=0.00,
                                   granularity=60,
                                   order_qty=order_qty,
@@ -510,10 +495,7 @@ def run_backtest():
                                   start_time=start_time,
                                   closing_time=closing_time)
 
-    execution = CMEBacktestExecutionHandler(symbols, events, second_bars=True)
-
-    backtest = Backtest(events, bars, strategy, execution, start_date, end_date)
-
+    backtest = Backtest(events, data, strategy, execution, start_date, end_date)
     backtest.run()
 
 

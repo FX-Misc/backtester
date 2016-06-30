@@ -71,6 +71,9 @@ class Strategy(object):
         """
         raise NotImplementedError("Strategy.new_fill()")
 
+    def new_day(self):
+        pass
+
     @abstractmethod
     def finished(self):
         """
@@ -78,6 +81,7 @@ class Strategy(object):
         Creates the time_series (DataFrame)
         """
         raise NotImplementedError("Strategy.finished()")
+
 
     def order(self, product, quantity, order_type='MARKET', price=None, order_time=None):
         """
@@ -108,20 +112,6 @@ class Strategy(object):
         self.curr_dt = market_event.dt
         self.last_bar = market_event.data
 
-    def get_latest_bars(self, symbol, window, start=None):
-        """
-        Get data for a symbol from [start-window, start]
-        :param symbol:
-        :param window: (pd.Timedelta)
-        :param start: (pd.Timestamp / DateTime) defaults to self.curr_dt
-        :return:
-        """
-        start = start if start is not None else self.curr_dt
-        if self.live is False:
-            return self._get_latest_bars_backtest(symbol, window, start)
-        else:
-            return self._get_latest_bars_live()
-
     def new_fill_update(self, fill_event):
         """
         Internal update on new fill.
@@ -137,6 +127,20 @@ class Strategy(object):
         self.cash -= fill_event.fill_cost
         self.transactions_series.append(fill_event)
         self.pnl_realized = sum(position.pnl_realized for position in self.positions.values())
+
+    def get_latest_bars(self, symbol, window, start=None):
+        """
+        Get data for a symbol from [start-window, start]
+        :param symbol:
+        :param window: (pd.Timedelta)
+        :param start: (pd.Timestamp / DateTime) defaults to self.curr_dt
+        :return:
+        """
+        start = start if start is not None else self.curr_dt
+        if self.live is False:
+            return self._get_latest_bars_backtest(symbol, window, start)
+        else:
+            return self._get_latest_bars_live()
 
     def _get_latest_bars_backtest(self, symbol, window, start):
         before = start - window
