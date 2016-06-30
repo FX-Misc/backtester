@@ -1,4 +1,7 @@
-import os
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 import json
 import pandas as pd
 import numpy as np
@@ -230,7 +233,7 @@ class MeanrevertStrategy(Strategy):
                     #qty = -1*(1 + abs(mid_price-uthresh)/0.1/self.stds[sym][-1])
                     qty = -1
                     if (abs(qty) > abs(pos) and np.sign(qty) == np.sign(pos)) or (np.sign(qty) != np.sign(pos)):
-                        self.order(self.prod, qty-pos)
+                        self.order(sym, qty-pos)
                         self.implied_pos[sym] += qty-pos
                         self.pos_entry_index = len(self.pnl) - 1
                 elif mid_price < dthresh:
@@ -436,7 +439,7 @@ class MeanrevertStrategy(Strategy):
     def check_stop_loss(self, sym):
         if self.pos_entry_index is not None:
             pos_pnl = self.pnl[-1] - self.pnl[self.pos_entry_index]
-            if pos_pnl < -200:
+            if pos_pnl < -400:
                 pos = self.implied_pos[sym]
                 self.order(self.prod, -pos)
                 self.implied_pos[sym] += -pos
@@ -451,8 +454,8 @@ class MeanrevertStrategy(Strategy):
         """
         if (pos != 0 and len(self.pnl) > 600 and self.pnl[-600] - self.pnl[-1] > 250) and \
                 (self.kill_till[sym] is None or self.kill_till[sym] <= self.cur_time):
-            self.order(self.prod, -pos)
-            self.order(self.prod, -pos)
+            self.order(sym, -pos)
+            self.order(sym, -pos)
             self.implied_pos[sym] += -2*pos
             self.kill_till[sym] = self.cur_time + dt.timedelta(minutes=15)
             self.last_order_time[sym] = self.cur_time
@@ -481,6 +484,10 @@ def run_backtest():
     start_date = dt.datetime(year=2015, month=12, day=1)
     end_date = dt.datetime(year=2015, month=12, day=2)
 
+    symbol = sys.argv[1]
+    start_date = dt.datetime.strptime(sys.argv[2], "%Y-%m-%d")
+    end_date = dt.datetime.strptime(sys.argv[3], "%Y-%m-%d")
+
     # contract_multiplier = {
     #     symbols[0]: 1000
     # }
@@ -489,14 +496,16 @@ def run_backtest():
     # }
 
     events = Queue()
+    products = [FuturesContract(symbol, continuous=True)]
+    data = BacktestDataHandler(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
     products = [FuturesContract('GC', continuous=True)]
     data = BacktestData(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
     execution = BacktestExecution(events, products)
-    strategy = MeanrevertStrategy(events, data, products,
+    strategy = MeanrevertStrategy(data, events, products,
                                   initial_cash=100000,
                                   # contract_multiplier=contract_multiplier,
                                   # transaction_costs=transaction_costs,
-                                  slippage=0.00,
+                                  slippage=0.01,
                                   granularity=60,
                                   order_qty=order_qty,
                                   min_hold_time=dt.timedelta(minutes=5),

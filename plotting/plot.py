@@ -96,7 +96,7 @@ def scatter(title, x, y, **kwargs):
 
 
 
-def plot_backtest(title, time_series, price_series, pnl_series, orders, signals, probs, positions, overwrite=False):
+def plot_backtest(title, time_series, price_series, true_price, s1, s2, s3, s4, pnl_series, orders, signals, probs, positions, overwrite=False):
     """
     Plot a backtest
     :param title:
@@ -122,6 +122,11 @@ def plot_backtest(title, time_series, price_series, pnl_series, orders, signals,
     flat_order_prices = map(lambda x: x[3], flat_orders)
 
     axes[0].plot(time_series, price_series)
+    axes[0].plot(time_series, true_price)
+    axes[0].plot(time_series, s1)
+    axes[0].plot(time_series, s2)
+    axes[0].plot(time_series, s3)
+    axes[0].plot(time_series, s4)
     axes[0].plot(long_order_times, long_order_prices, '^', ms=8, color='g')
     axes[0].plot(short_order_times, short_order_prices, 'v', ms=8, color='r')
     axes[0].plot(flat_order_times, flat_order_prices, 'x', ms=8, color='m')
