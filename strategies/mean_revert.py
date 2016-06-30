@@ -466,9 +466,10 @@ def run_backtest():
     order_qty = 1
     start_time = dt.time(hour=5)
     closing_time = dt.time(hour=18)
-    standardize = False
-    start_date = dt.datetime(year=2015, month=11, day=1)
-    end_date = dt.datetime(year=2015, month=11, day=30)
+
+    symbol = sys.argv[1]
+    start_date = dt.datetime.strptime(sys.argv[2], "%Y-%m-%d")
+    end_date = dt.datetime.strptime(sys.argv[3], "%Y-%m-%d")
 
     # contract_multiplier = {
     #     symbols[0]: 1000
@@ -478,7 +479,7 @@ def run_backtest():
     # }
 
     events = Queue()
-    products = [FuturesContract('GC', continuous=True)]
+    products = [FuturesContract(symbol, continuous=True)]
     data = BacktestDataHandler(events, products, start_date, end_date, start_time=start_time, end_time=closing_time)
     execution = BacktestExecution(events, products)
     strategy = MeanrevertStrategy(data, events, products,
