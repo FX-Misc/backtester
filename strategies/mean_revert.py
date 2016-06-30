@@ -425,7 +425,7 @@ class MeanrevertStrategy(Strategy):
     def check_stop_loss(self, sym):
         if self.pos_entry_index is not None:
             pos_pnl = self.pnl[-1] - self.pnl[self.pos_entry_index]
-            if pos_pnl < -200:
+            if pos_pnl < -400:
                 pos = self.implied_pos[sym]
                 self.order(sym, -pos)
                 self.implied_pos[sym] += -pos
