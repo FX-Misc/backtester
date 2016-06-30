@@ -104,6 +104,8 @@ def get_highest_volume_contract(base_symbol, year, month, day):
     highest_volume_contract = build_contract(base_symbol, year, month)
     max_volume = 0
     start_date = dt.datetime(year, month, day)
+
+    # check contracts of 8 months forward
     for i in range(8):
         date = start_date + relativedelta(months=i)
         try:
@@ -112,7 +114,7 @@ def get_highest_volume_contract(base_symbol, year, month, day):
             if volume >= max_volume:
                 highest_volume_contract = build_contract(base_symbol, date.year, date.month)
                 max_volume = volume
-        except Qd.DatasetNotFound:
+        except (Qd.DatasetNotFound, KeyError):
             pass
 
     return highest_volume_contract

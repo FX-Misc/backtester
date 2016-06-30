@@ -84,10 +84,12 @@ def get_contract_details(contract):
     contract_details['ticker'] = fut.build_contract(contract_details['symbol'], exp_year, exp_month)
     return contract_details
 
+
 def get_contract_ticker(contract):
     exp_year, exp_month, exp_day = get_exp(contract.m_expiry)
     ticker = fut.build_contract(contract.m_symbol, exp_year, exp_month)
     return ticker
+
 
 def get_execution_details(execution):
     """

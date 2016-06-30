@@ -1,21 +1,28 @@
 import logging
 import datetime as dt
 from trading.events import MarketEvent
-from trading.data import BacktestDataHandler
+from trading.data import DataHandler
 from data_utils.quantgo_utils import get_data_multi
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s')
 log = logging.getLogger('Backtest')
 
 
-class BacktestData(BacktestDataHandler):
+class BacktestData(DataHandler):
     def __init__(self, events, products, start_date, end_date,
                  start_time=dt.time(hour=3),
                  end_time=dt.time(hour=20),
                  second_bars=True):
 
-        super(BacktestData, self).__init__(events, products, start_date, end_date,
-                                           start_time=start_time,
-                                           end_time=end_time)
+        super(BacktestData, self).__init__(events)
+
+        self.continue_backtest = True
+        self.products = products
+        self.start_date = start_date
+        self.end_date = end_date
+        self.start_time = start_time
+        self.end_time = end_time
+
+
         self.second_bars = second_bars
         self.curr_day = dt.datetime(year=start_date.year, month=start_date.month, day=start_date.day)
         self.prev_day = None
@@ -23,7 +30,7 @@ class BacktestData(BacktestDataHandler):
         self.curr_day_index = 0
         self.curr_dt = None
         self.last_bar = {}
-        self._load_day_data()
+        self.update()
 
 
     def _load_day_data(self):
@@ -33,7 +40,8 @@ class BacktestData(BacktestDataHandler):
 
         # for continuous contracts, update the symbol on new day
         for product in self.products:
-            product.update(exp_year=self.curr_day.year, exp_month=self.curr_day.month)
+            product.update(year=self.curr_day.year, month=self.curr_day.month, day=self.curr_day.day)
+
         symbols = [product.symbol for product in self.products]
 
 
@@ -48,6 +56,7 @@ class BacktestData(BacktestDataHandler):
         if self.curr_day >= self.end_date:
             self.continue_backtest = False
             return
+
         try:
             self._push_next_data()
         except (StopIteration, AttributeError, ValueError):
